@@ -9,6 +9,7 @@ Aplicación web desarrollada con **React 18**, **Programación Orientada a Objet
 ### Integrantes del Proyecto
 - **Tomas Alejandro Garcia Benavides**
 - **Angel Daniel Cortes Garcia**
+- **Dilan Santiago Correa Gelves**
 
 ### Enlaces Oficiales del Proyecto
 - **Aplicación en Vivo (GitHub Pages)**: [https://heladeriakreisel.github.io/leiti-app/](https://heladeriakreisel.github.io/leiti-app/)
