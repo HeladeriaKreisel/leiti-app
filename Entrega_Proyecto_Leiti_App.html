@@ -363,124 +363,178 @@
   <!-- PÁGINA 2: ARQUITECTURA DE REACT Y DIAGRAMA DE CLASES UML -->
   <div class="page-break"></div>
 
-  <h2>3. Estructura y Arquitectura de React + Diagrama de Clases UML</h2>
-  <p style="margin: 0 0 10px 0;">
-    El sistema está estructurado bajo una arquitectura modular en capas (<strong>Presentación / Vistas React</strong> &rarr; <strong>Servicios / API REST</strong> &rarr; <strong>Modelos de Dominio POO en ES6</strong> &rarr; <strong>Persistencia PostgreSQL en Supabase</strong>):
+  <h2>3. Diagrama de Clases UML Acorde al Código (Gráfico Visual Completo)</h2>
+  <p style="margin: 0 0 8px 0; font-size: 9.5pt;">
+    A continuación se presenta el diagrama de clases UML completo con sus atributos, métodos, estereotipos y flechas de relación (<strong>Dependencia</strong>, <strong>Composición</strong> y <strong>Agregación</strong>) acorde al código de <code>src/models/</code>, <code>src/services/</code> y <code>src/App.jsx</code>:
   </p>
 
-  <div class="uml-grid">
-    <div class="uml-box">
-      <div class="uml-header">class Finca (src/models/Finca.js)</div>
-      <div class="uml-section">
-        + id: string<br/>
-        + nombre_finca: string<br/>
-        + propietario_nombre: string<br/>
-        + municipio, departamento: string<br/>
-        + capacidad_tanque_litros: number<br/>
-        + temperatura_tanque: number<br/>
-        + total_vacas, vacas_en_ordeno: number<br/>
-        + meta_diaria_litros: number
-      </div>
-      <div class="uml-section">
-        + calcularPorcentajeOcupacionTanque(litros): number<br/>
-        + calcularCumplimientoMeta(litrosDia): number<br/>
-        + calcularPromedioLitrosPorVaca(litrosDia): number<br/>
-        + toDatabasePayload(): object
-      </div>
-    </div>
+  <!-- DIAGRAMA UML VECTORIAL COMPLETO (IDÉNTICO AL MERMAID CLASS DIAGRAM) -->
+  <div style="border: 2px solid #D3E8DC; border-radius: 14px; background: #FAFDFB; padding: 10px; margin-bottom: 12px; text-align: center;">
+    <svg viewBox="0 0 1060 760" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="font-family: 'JetBrains Mono', Consolas, monospace;">
+      <defs>
+        <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#1B5E38" />
+        </marker>
+        <marker id="arrow-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#296A45" stroke-width="2" />
+        </marker>
+        <marker id="diamond-filled" viewBox="0 0 16 10" refX="1" refY="5" markerWidth="11" markerHeight="8" orient="auto">
+          <polygon points="1,5 8,1 15,5 8,9" fill="#1B5E38" stroke="#1B5E38" stroke-width="1" />
+        </marker>
+        <marker id="diamond-hollow" viewBox="0 0 16 10" refX="1" refY="5" markerWidth="11" markerHeight="8" orient="auto">
+          <polygon points="1,5 8,1 15,5 8,9" fill="#FFFFFF" stroke="#1B5E38" stroke-width="1.8" />
+        </marker>
+      </defs>
 
-    <div class="uml-box">
-      <div class="uml-header">class RegistroLeche (src/models/RegistroLeche.js)</div>
-      <div class="uml-section">
-        + id: string<br/>
-        + fecha: string | hora: string<br/>
-        + turno: 'morning' | 'afternoon'<br/>
-        + litros: number<br/>
-        + precio_litro: number<br/>
-        + flete_por_litro: number<br/>
-        + tanque_temperatura: number<br/>
-        + subtotal_cop, descuento_flete, neto_cop: number
-      </div>
-      <div class="uml-section">
-        + calcularSubtotal(): number<br/>
-        + calcularDescuentoFlete(): number<br/>
-        + calcularNeto(): number<br/>
-        + obtenerEtiquetaTurno(): string<br/>
-        + toDatabasePayload(): object
-      </div>
-    </div>
+      <!-- CAJA 1: App (Nivel Superior) -->
+      <g transform="translate(335, 10)">
+        <rect width="390" height="175" rx="8" fill="#FFFFFF" stroke="#1B5E38" stroke-width="2.2" />
+        <rect width="390" height="30" rx="8" fill="#1B5E38" />
+        <text x="195" y="20" fill="#FFFFFF" font-size="12" font-weight="bold" text-anchor="middle">App (src/App.jsx)</text>
+        <line x1="0" y1="95" x2="390" y2="95" stroke="#BCE5D1" stroke-width="1.5" />
+        <text x="10" y="46" fill="#0F291A" font-size="9.5">- string currentTab | - boolean isSyncing</text>
+        <text x="10" y="61" fill="#0F291A" font-size="9.5">- Finca finca | - RegistroLeche[] registros</text>
+        <text x="10" y="76" fill="#0F291A" font-size="9.5">- Cliente[] clientes | - VentaRemision[] ventas</text>
+        <text x="10" y="112" fill="#1B5E38" font-size="9.2">+ loadData() : Promise&lt;boolean&gt; | + handleSync()</text>
+        <text x="10" y="127" fill="#1B5E38" font-size="9.2">+ handleSaveFinca(datosFinca) : Promise&lt;object&gt;</text>
+        <text x="10" y="142" fill="#1B5E38" font-size="9.2">+ handleAddRegistro(nuevoRegistro) : Promise&lt;object&gt;</text>
+        <text x="10" y="157" fill="#1B5E38" font-size="9.2">+ handleAddVenta() | + handleAddCliente() | + handleDeleteCliente()</text>
+      </g>
 
-    <div class="uml-box">
-      <div class="uml-header">class Cliente (src/models/Cliente.js)</div>
-      <div class="uml-section">
-        + id: string<br/>
-        + clave_alias: string<br/>
-        + nombre: string<br/>
-        + empresa: string<br/>
-        + contacto_nombre: string<br/>
-        + telefono, telefono_wa: string<br/>
-        + precio_acordado_litro: number<br/>
-        + ruta: string
-      </div>
-      <div class="uml-section">
-        + generarAlias(nombre): string<br/>
-        + normalizarWhatsApp(telefono): string<br/>
-        + obtenerEnlaceWhatsApp(mensaje): string<br/>
-        + toDatabasePayload(): object
-      </div>
-    </div>
+      <!-- Flecha App --> SupabaseService -->
+      <line x1="530" y1="185" x2="530" y2="232" stroke="#1B5E38" stroke-width="2.2" marker-end="url(#arrow-solid)" />
+      <rect x="538" y="198" width="68" height="18" rx="4" fill="#E8F8F0" />
+      <text x="572" y="210" fill="#1B5E38" font-size="9.5" font-weight="bold" text-anchor="middle">consume</text>
 
-    <div class="uml-box">
-      <div class="uml-header">class VentaRemision (src/models/VentaRemision.js)</div>
-      <div class="uml-section">
-        + id: string<br/>
-        + numero_remision: string<br/>
-        + cliente_nombre: string<br/>
-        + fecha, hora: string<br/>
-        + litros: number<br/>
-        + precio_litro: number<br/>
-        + total_cop: number<br/>
-        + metodo_pago, estado: string
-      </div>
-      <div class="uml-section">
-        + generarNumeroRemision(): string<br/>
-        + calcularTotal(): number<br/>
-        + estaPagada(): boolean<br/>
-        + alternarEstadoPago(): string<br/>
-        + toDatabasePayload(): object
-      </div>
-    </div>
+      <!-- CAJA 2: SupabaseService (Nivel Medio) -->
+      <g transform="translate(315, 235)">
+        <rect width="430" height="165" rx="8" fill="#FFFFFF" stroke="#1B5E38" stroke-width="2.2" />
+        <rect width="430" height="36" rx="8" fill="#1B5E38" />
+        <text x="215" y="15" fill="#A8E6CF" font-size="9.5" text-anchor="middle">&lt;&lt;service&gt;&gt;</text>
+        <text x="215" y="30" fill="#FFFFFF" font-size="12" font-weight="bold" text-anchor="middle">SupabaseService</text>
+        <text x="12" y="54" fill="#0F291A" font-size="9.2">+ obtenerFinca() : Promise&lt;Finca&gt;</text>
+        <text x="12" y="69" fill="#0F291A" font-size="9.2">+ guardarFinca(fincaData) : Promise&lt;object&gt;</text>
+        <text x="12" y="84" fill="#0F291A" font-size="9.2">+ listarRegistrosLeche() : Promise&lt;RegistroLeche[]&gt;</text>
+        <text x="12" y="99" fill="#0F291A" font-size="9.2">+ registrarOrdeno(registro) : Promise&lt;RegistroLeche&gt;</text>
+        <text x="12" y="114" fill="#0F291A" font-size="9.2">+ listarClientes() : Promise&lt;Cliente[]&gt; | + crearCliente()</text>
+        <text x="12" y="129" fill="#0F291A" font-size="9.2">+ eliminarCliente(id) : Promise&lt;object&gt;</text>
+        <text x="12" y="144" fill="#0F291A" font-size="9.2">+ listarVentas() : Promise&lt;VentaRemision[]&gt; | + emitirRemision()</text>
+        <text x="12" y="158" fill="#0F291A" font-size="9.2">+ actualizarEstadoVenta(id, nuevoEstado) : Promise&lt;object&gt;</text>
+      </g>
 
-    <div class="uml-box">
-      <div class="uml-header">&lt;&lt;service&gt;&gt; SupabaseService (supabaseService.js)</div>
-      <div class="uml-section">
-        - SUPABASE_URL: string<br/>
-        - SUPABASE_ANON_KEY: string
-      </div>
-      <div class="uml-section">
-        + obtenerFinca(): Promise&lt;Finca&gt;<br/>
-        + guardarFinca(fincaData): Promise&lt;object&gt;<br/>
-        + listarRegistrosLeche(): Promise&lt;RegistroLeche[]&gt;<br/>
-        + registrarOrdeno(registro): Promise&lt;RegistroLeche&gt;<br/>
-        + listarClientes() / crearCliente() / eliminarCliente()<br/>
-        + listarVentas() / emitirRemision() / actualizarEstadoVenta()
-      </div>
-    </div>
+      <!-- Líneas punteadas de dependencia SupabaseService ..> Clases POO -->
+      <path d="M 380 400 L 135 458" fill="none" stroke="#296A45" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#arrow-open)" />
+      <text x="235" y="423" fill="#296A45" font-size="9" font-weight="bold">instancia</text>
 
-    <div class="uml-box">
-      <div class="uml-header">&lt;&lt;React Root&gt;&gt; App (src/App.jsx)</div>
-      <div class="uml-section">
-        - state currentTab: string<br/>
-        - state finca: Finca<br/>
-        - state registros: RegistroLeche[]<br/>
-        - state clientes: Cliente[]<br/>
-        - state ventas: VentaRemision[]
-      </div>
-      <div class="uml-section">
-        + useEffect(() =&gt; loadData(), [])<br/>
-        + Renderiza: Sidebar, Header, DashboardView, MiFincaView, LecheDiaView, VentasView, ClientesView
-      </div>
-    </div>
+      <path d="M 465 400 L 395 458" fill="none" stroke="#296A45" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#arrow-open)" />
+      <text x="400" y="432" fill="#296A45" font-size="9" font-weight="bold">instancia</text>
+
+      <path d="M 595 400 L 665 458" fill="none" stroke="#296A45" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#arrow-open)" />
+      <text x="642" y="432" fill="#296A45" font-size="9" font-weight="bold">instancia</text>
+
+      <path d="M 680 400 L 920 458" fill="none" stroke="#296A45" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#arrow-open)" />
+      <text x="815" y="423" fill="#296A45" font-size="9" font-weight="bold">instancia</text>
+
+      <!-- CAJA 3: Finca -->
+      <g transform="translate(10, 462)">
+        <rect width="245" height="235" rx="8" fill="#FFFFFF" stroke="#1B5E38" stroke-width="2" />
+        <rect width="245" height="28" rx="8" fill="#1B5E38" />
+        <text x="122" y="19" fill="#FFFFFF" font-size="11.5" font-weight="bold" text-anchor="middle">Finca</text>
+        <line x1="0" y1="150" x2="245" y2="150" stroke="#BCE5D1" stroke-width="1.5" />
+        <text x="8" y="44" fill="#0F291A" font-size="8.6">+ string id</text>
+        <text x="8" y="57" fill="#0F291A" font-size="8.6">+ string nombre_finca</text>
+        <text x="8" y="70" fill="#0F291A" font-size="8.6">+ string propietario_nombre</text>
+        <text x="8" y="83" fill="#0F291A" font-size="8.6">+ string municipio</text>
+        <text x="8" y="96" fill="#0F291A" font-size="8.6">+ number capacidad_tanque_litros</text>
+        <text x="8" y="109" fill="#0F291A" font-size="8.6">+ number temperatura_tanque</text>
+        <text x="8" y="122" fill="#0F291A" font-size="8.6">+ number total_vacas</text>
+        <text x="8" y="135" fill="#0F291A" font-size="8.6">+ number vacas_en_ordeno</text>
+        <text x="8" y="146" fill="#0F291A" font-size="8.6">+ number meta_diaria_litros</text>
+        <text x="8" y="166" fill="#1B5E38" font-size="8.3">+ calcularPorcentajeOcupacionTanque()</text>
+        <text x="8" y="181" fill="#1B5E38" font-size="8.3">+ calcularCumplimientoMeta()</text>
+        <text x="8" y="196" fill="#1B5E38" font-size="8.3">+ calcularPromedioLitrosPorVaca()</text>
+        <text x="8" y="211" fill="#1B5E38" font-size="8.3">+ toDatabasePayload() : object</text>
+      </g>
+
+      <!-- CAJA 4: RegistroLeche -->
+      <g transform="translate(275, 462)">
+        <rect width="245" height="235" rx="8" fill="#FFFFFF" stroke="#1B5E38" stroke-width="2" />
+        <rect width="245" height="28" rx="8" fill="#1B5E38" />
+        <text x="122" y="19" fill="#FFFFFF" font-size="11.5" font-weight="bold" text-anchor="middle">RegistroLeche</text>
+        <line x1="0" y1="150" x2="245" y2="150" stroke="#BCE5D1" stroke-width="1.5" />
+        <text x="8" y="44" fill="#0F291A" font-size="8.6">+ string id | + string fecha</text>
+        <text x="8" y="57" fill="#0F291A" font-size="8.6">+ string hora | + string turno</text>
+        <text x="8" y="70" fill="#0F291A" font-size="8.6">+ number litros</text>
+        <text x="8" y="83" fill="#0F291A" font-size="8.6">+ number precio_litro</text>
+        <text x="8" y="96" fill="#0F291A" font-size="8.6">+ number flete_por_litro</text>
+        <text x="8" y="109" fill="#0F291A" font-size="8.6">+ number tanque_temperatura</text>
+        <text x="8" y="122" fill="#0F291A" font-size="8.6">+ number subtotal_cop</text>
+        <text x="8" y="135" fill="#0F291A" font-size="8.6">+ number descuento_flete</text>
+        <text x="8" y="146" fill="#0F291A" font-size="8.6">+ number neto_cop</text>
+        <text x="8" y="166" fill="#1B5E38" font-size="8.3">+ calcularSubtotal() : number</text>
+        <text x="8" y="181" fill="#1B5E38" font-size="8.3">+ calcularDescuentoFlete() : number</text>
+        <text x="8" y="196" fill="#1B5E38" font-size="8.3">+ calcularNeto() : number</text>
+        <text x="8" y="211" fill="#1B5E38" font-size="8.3">+ obtenerEtiquetaTurno() : string</text>
+        <text x="8" y="225" fill="#1B5E38" font-size="8.3">+ toDatabasePayload() : object</text>
+      </g>
+
+      <!-- CAJA 5: Cliente -->
+      <g transform="translate(540, 462)">
+        <rect width="245" height="235" rx="8" fill="#FFFFFF" stroke="#1B5E38" stroke-width="2" />
+        <rect width="245" height="28" rx="8" fill="#1B5E38" />
+        <text x="122" y="19" fill="#FFFFFF" font-size="11.5" font-weight="bold" text-anchor="middle">Cliente</text>
+        <line x1="0" y1="150" x2="245" y2="150" stroke="#BCE5D1" stroke-width="1.5" />
+        <text x="8" y="44" fill="#0F291A" font-size="8.6">+ string id</text>
+        <text x="8" y="57" fill="#0F291A" font-size="8.6">+ string clave_alias</text>
+        <text x="8" y="70" fill="#0F291A" font-size="8.6">+ string nombre</text>
+        <text x="8" y="83" fill="#0F291A" font-size="8.6">+ string empresa</text>
+        <text x="8" y="96" fill="#0F291A" font-size="8.6">+ string contacto_nombre</text>
+        <text x="8" y="109" fill="#0F291A" font-size="8.6">+ string telefono</text>
+        <text x="8" y="122" fill="#0F291A" font-size="8.6">+ string telefono_wa</text>
+        <text x="8" y="135" fill="#0F291A" font-size="8.6">+ number precio_acordado_litro</text>
+        <text x="8" y="146" fill="#0F291A" font-size="8.6">+ string ruta</text>
+        <text x="8" y="166" fill="#1B5E38" font-size="8.3">+ generarAlias(nombre) : string</text>
+        <text x="8" y="181" fill="#1B5E38" font-size="8.3">+ normalizarWhatsApp(tel) : string</text>
+        <text x="8" y="196" fill="#1B5E38" font-size="8.3">+ obtenerEnlaceWhatsApp() : string</text>
+        <text x="8" y="211" fill="#1B5E38" font-size="8.3">+ toDatabasePayload() : object</text>
+      </g>
+
+      <!-- CAJA 6: VentaRemision -->
+      <g transform="translate(805, 462)">
+        <rect width="245" height="235" rx="8" fill="#FFFFFF" stroke="#1B5E38" stroke-width="2" />
+        <rect width="245" height="28" rx="8" fill="#1B5E38" />
+        <text x="122" y="19" fill="#FFFFFF" font-size="11.5" font-weight="bold" text-anchor="middle">VentaRemision</text>
+        <line x1="0" y1="150" x2="245" y2="150" stroke="#BCE5D1" stroke-width="1.5" />
+        <text x="8" y="44" fill="#0F291A" font-size="8.6">+ string id</text>
+        <text x="8" y="57" fill="#0F291A" font-size="8.6">+ string numero_remision</text>
+        <text x="8" y="70" fill="#0F291A" font-size="8.6">+ string cliente_nombre</text>
+        <text x="8" y="83" fill="#0F291A" font-size="8.6">+ string fecha | + string hora</text>
+        <text x="8" y="96" fill="#0F291A" font-size="8.6">+ number litros</text>
+        <text x="8" y="109" fill="#0F291A" font-size="8.6">+ number precio_litro</text>
+        <text x="8" y="122" fill="#0F291A" font-size="8.6">+ number total_cop</text>
+        <text x="8" y="135" fill="#0F291A" font-size="8.6">+ string metodo_pago</text>
+        <text x="8" y="146" fill="#0F291A" font-size="8.6">+ string estado</text>
+        <text x="8" y="166" fill="#1B5E38" font-size="8.3">+ generarNumeroRemision() : string</text>
+        <text x="8" y="181" fill="#1B5E38" font-size="8.3">+ calcularTotal() : number</text>
+        <text x="8" y="196" fill="#1B5E38" font-size="8.3">+ estaPagada() : boolean</text>
+        <text x="8" y="211" fill="#1B5E38" font-size="8.3">+ alternarEstadoPago() : string</text>
+        <text x="8" y="225" fill="#1B5E38" font-size="8.3">+ toDatabasePayload() : object</text>
+      </g>
+
+      <!-- Relación Composición: Finca "1" *-- "0..*" RegistroLeche -->
+      <path d="M 132 697 L 132 738 L 397 738 L 397 697" fill="none" stroke="#1B5E38" stroke-width="2.2" marker-start="url(#diamond-filled)" />
+      <text x="142" y="718" fill="#0F291A" font-size="9.5" font-weight="bold">"1"</text>
+      <text x="360" y="718" fill="#0F291A" font-size="9.5" font-weight="bold">"0..*"</text>
+      <rect x="215" y="726" width="95" height="18" rx="4" fill="#E8F8F0" stroke="#BCE5D1" />
+      <text x="262" y="738" fill="#1B5E38" font-size="9.5" font-weight="bold" text-anchor="middle">*-- produce</text>
+
+      <!-- Relación Agregación: Cliente "1" o-- "0..*" VentaRemision -->
+      <path d="M 662 697 L 662 738 L 927 738 L 927 697" fill="none" stroke="#1B5E38" stroke-width="2.2" marker-start="url(#diamond-hollow)" />
+      <text x="672" y="718" fill="#0F291A" font-size="9.5" font-weight="bold">"1"</text>
+      <text x="890" y="718" fill="#0F291A" font-size="9.5" font-weight="bold">"0..*"</text>
+      <rect x="745" y="726" width="95" height="18" rx="4" fill="#E8F8F0" stroke="#BCE5D1" />
+      <text x="792" y="738" fill="#1B5E38" font-size="9.5" font-weight="bold" text-anchor="middle">o-- compra</text>
+    </svg>
   </div>
 
   <p style="font-size: 9pt; background: #F4FBF7; border: 1px solid #BCE5D1; padding: 10px 14px; border-radius: 10px; margin-top: 12px;">
