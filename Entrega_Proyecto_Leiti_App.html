@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Informe Técnico y Entrega - Leiti.app</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: A4;
+      margin: 14mm 14mm 14mm 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      color: #0F291A;
+      background: #FFFFFF;
+      line-height: 1.5;
+      font-size: 10.5pt;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    /* Portada / Encabezado */
+    .cover-box {
+      border: 2px solid #1B5E38;
+      border-radius: 18px;
+      padding: 28px 32px;
+      background: linear-gradient(135deg, #F4FBF7 0%, #FFFFFF 65%, #E8F8F0 100%);
+      margin-bottom: 22px;
+    }
+
+    .cover-top {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      border-bottom: 2px solid #D3E8DC;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+    }
+
+    .cover-logo {
+      width: 92px;
+      height: 92px;
+      border-radius: 22px;
+      object-fit: cover;
+      border: 2px solid #A8E6CF;
+      box-shadow: 0 6px 18px rgba(27, 94, 56, 0.14);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #1B5E38;
+      color: #FFFFFF;
+      font-size: 8.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22pt;
+      font-weight: 800;
+      color: #0F291A;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      font-size: 11pt;
+      color: #296A45;
+      font-weight: 600;
+    }
+
+    .authors-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .author-card {
+      background: #FFFFFF;
+      border: 1.5px solid #BCE5D1;
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+
+    .author-role {
+      font-size: 8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #296A45;
+      letter-spacing: 0.06em;
+    }
+
+    .author-name {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #0F291A;
+      margin-top: 2px;
+    }
+
+    h2 {
+      font-size: 14pt;
+      font-weight: 800;
+      color: #1B5E38;
+      border-left: 5px solid #1B5E38;
+      padding-left: 10px;
+      margin: 20px 0 12px 0;
+    }
+
+    h3 {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #0F291A;
+      margin: 14px 0 6px 0;
+    }
+
+    /* Tabla de Enlaces */
+    table.links-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 18px;
+      font-size: 9.5pt;
+    }
+
+    table.links-table th {
+      background: #1B5E38;
+      color: #FFFFFF;
+      text-align: left;
+      padding: 9px 12px;
+      font-weight: 700;
+    }
+
+    table.links-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #E2EBE5;
+      background: #FAFDFB;
+    }
+
+    table.links-table a {
+      color: #0F5E36;
+      font-weight: 700;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
+    /* Ventana de código estilo VS Code (Imágenes de Código) */
+    .vscode-window {
+      background: #1E1E2E;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #313244;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      page-break-inside: avoid;
+    }
+
+    .vscode-header {
+      background: #181825;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #313244;
+    }
+
+    .vscode-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot.red { background: #F38BA8; }
+    .dot.yellow { background: #F9E2AF; }
+    .dot.green { background: #A6E3A1; }
+
+    .vscode-title {
+      color: #CDD6F4;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5pt;
+      font-weight: 600;
+    }
+
+    .vscode-badge {
+      background: #313244;
+      color: #A6E3A1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.5pt;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .vscode-code {
+      margin: 0;
+      padding: 12px 16px;
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 8pt;
+      line-height: 1.42;
+      color: #CDD6F4;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .kw { color: #CBA6F7; font-weight: 600; }
+    .cls { color: #F9E2AF; font-weight: 600; }
+    .fn { color: #89B4FA; }
+    .str { color: #A6E3A1; }
+    .cm { color: #6C7086; font-style: italic; }
+    .num { color: #FAB387; }
+
+    /* Diagrama de Clases Visual UML */
+    .uml-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .uml-box {
+      border: 2px solid #1B5E38;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #FFFFFF;
+      font-size: 8.2pt;
+      page-break-inside: avoid;
+    }
+
+    .uml-header {
+      background: #1B5E38;
+      color: #FFFFFF;
+      padding: 6px 10px;
+      font-weight: 800;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .uml-section {
+      padding: 6px 10px;
+      border-bottom: 1px solid #D3E8DC;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .uml-section:last-child {
+      border-bottom: none;
+      background: #F4FBF7;
+    }
+
+    .screenshot-frame {
+      border: 2px solid #D3E8DC;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 10px 0 16px 0;
+      text-align: center;
+      background: #F7F9F8;
+      padding: 8px;
+    }
+
+    .screenshot-frame img {
+      max-width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PORTADA E INFORMACIÓN GENERAL -->
+  <div class="cover-box">
+    <div class="cover-top">
+      <img src="logo-icon.png" alt="Logo Leiti.app" class="cover-logo" />
+      <div>
+        <span class="badge">Entrega Final de Proyecto — Ingeniería &amp; Desarrollo Web</span>
+        <h1>Leiti.app — Gestión Ganadera</h1>
+        <p class="subtitle">Arquitectura React 18 + Programación Orientada a Objetos (POO) + Supabase PostgreSQL</p>
+      </div>
+    </div>
+
+    <div style="font-size: 9.5pt; font-weight: 700; color: #1B5E38; text-transform: uppercase; letter-spacing: 0.05em;">
+      Integrantes del Equipo de Desarrollo:
+    </div>
+    <div class="authors-grid">
+      <div class="author-card">
+        <div class="author-role">Desarrollador Full-Stack &amp; Arquitectura React</div>
+        <div class="author-name">Tomas Alejandro Garcia Benavides</div>
+      </div>
+      <div class="author-card">
+        <div class="author-role">Desarrollador Full-Stack &amp; Base de Datos / POO</div>
+        <div class="author-name">Angel Daniel Cortes Garcia</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE ENLACES OFICIALES -->
+  <h2>1. Enlaces Oficiales del Proyecto (En Vivo y Repositorio)</h2>
+  <table class="links-table">
+    <thead>
+      <tr>
+        <th style="width: 34%;">Recurso / Plataforma</th>
+        <th>Enlace Directo (Clickeable)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Aplicación Web Publicada (GitHub Pages)</strong></td>
+        <td><a href="https://heladeriakreisel.github.io/leiti-app/">https://heladeriakreisel.github.io/leiti-app/</a></td>
+      </tr>
+      <tr>
+        <td><strong>Acceso Directo SPA (app.html)</strong></td>
+        <td><a href="https://heladeriakreisel.github.io/leiti-app/app.html">https://heladeriakreisel.github.io/leiti-app/app.html</a></td>
+      </tr>
+      <tr>
+        <td><strong>Repositorio Oficial en GitHub</strong></td>
+        <td><a href="https://github.com/HeladeriaKreisel/leiti-app">https://github.com/HeladeriaKreisel/leiti-app</a></td>
+      </tr>
+      <tr>
+        <td><strong>Documentación Diagrama de Clases UML</strong></td>
+        <td><a href="https://github.com/HeladeriaKreisel/leiti-app/blob/main/DIAGRAMA_CLASES.md">https://github.com/HeladeriaKreisel/leiti-app/blob/main/DIAGRAMA_CLASES.md</a></td>
+      </tr>
+      <tr>
+        <td><strong>Modelos POO en GitHub (src/models)</strong></td>
+        <td><a href="https://github.com/HeladeriaKreisel/leiti-app/tree/main/src/models">https://github.com/HeladeriaKreisel/leiti-app/tree/main/src/models</a></td>
+      </tr>
+      <tr>
+        <td><strong>Base de Datos en la Nube (Supabase API)</strong></td>
+        <td><a href="https://cthvxtjwstyezwzuohdx.supabase.co">https://cthvxtjwstyezwzuohdx.supabase.co</a> (Proyecto: <code>leitti.appproyect</code>)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- VISTA DE LA INTERFAZ FUNCIONANDO -->
+  <h2>2. Evidencia de la Aplicación Funcionando y Conectada a Supabase</h2>
+  <div class="screenshot-frame">
+    <img src="C:/Users/User/.gemini/antigravity/brain/ca045d99-3253-4520-a88d-0ed7934058b3/.user_uploaded/media_1794238388849_acdb9d54.jpg" alt="Aplicación Leiti.app en ejecución" />
+    <div style="font-size: 8.5pt; color: #52665A; margin-top: 4px;">
+      <strong>Figura 1:</strong> Interfaz de <em>Leiti.app</em> ejecutándose en navegador con conexión activa a Supabase PostgreSQL.
+    </div>
+  </div>
+
+  <!-- PÁGINA 2: ARQUITECTURA DE REACT Y DIAGRAMA DE CLASES UML -->
+  <div class="page-break"></div>
+
+  <h2>3. Estructura y Arquitectura de React + Diagrama de Clases UML</h2>
+  <p style="margin: 0 0 10px 0;">
+    El sistema está estructurado bajo una arquitectura modular en capas (<strong>Presentación / Vistas React</strong> &rarr; <strong>Servicios / API REST</strong> &rarr; <strong>Modelos de Dominio POO en ES6</strong> &rarr; <strong>Persistencia PostgreSQL en Supabase</strong>):
+  </p>
+
+  <div class="uml-grid">
+    <div class="uml-box">
+      <div class="uml-header">class Finca (src/models/Finca.js)</div>
+      <div class="uml-section">
+        + id: string<br/>
+        + nombre_finca: string<br/>
+        + propietario_nombre: string<br/>
+        + municipio, departamento: string<br/>
+        + capacidad_tanque_litros: number<br/>
+        + temperatura_tanque: number<br/>
+        + total_vacas, vacas_en_ordeno: number<br/>
+        + meta_diaria_litros: number
+      </div>
+      <div class="uml-section">
+        + calcularPorcentajeOcupacionTanque(litros): number<br/>
+        + calcularCumplimientoMeta(litrosDia): number<br/>
+        + calcularPromedioLitrosPorVaca(litrosDia): number<br/>
+        + toDatabasePayload(): object
+      </div>
+    </div>
+
+    <div class="uml-box">
+      <div class="uml-header">class RegistroLeche (src/models/RegistroLeche.js)</div>
+      <div class="uml-section">
+        + id: string<br/>
+        + fecha: string | hora: string<br/>
+        + turno: 'morning' | 'afternoon'<br/>
+        + litros: number<br/>
+        + precio_litro: number<br/>
+        + flete_por_litro: number<br/>
+        + tanque_temperatura: number<br/>
+        + subtotal_cop, descuento_flete, neto_cop: number
+      </div>
+      <div class="uml-section">
+        + calcularSubtotal(): number<br/>
+        + calcularDescuentoFlete(): number<br/>
+        + calcularNeto(): number<br/>
+        + obtenerEtiquetaTurno(): string<br/>
+        + toDatabasePayload(): object
+      </div>
+    </div>
+
+    <div class="uml-box">
+      <div class="uml-header">class Cliente (src/models/Cliente.js)</div>
+      <div class="uml-section">
+        + id: string<br/>
+        + clave_alias: string<br/>
+        + nombre: string<br/>
+        + empresa: string<br/>
+        + contacto_nombre: string<br/>
+        + telefono, telefono_wa: string<br/>
+        + precio_acordado_litro: number<br/>
+        + ruta: string
+      </div>
+      <div class="uml-section">
+        + generarAlias(nombre): string<br/>
+        + normalizarWhatsApp(telefono): string<br/>
+        + obtenerEnlaceWhatsApp(mensaje): string<br/>
+        + toDatabasePayload(): object
+      </div>
+    </div>
+
+    <div class="uml-box">
+      <div class="uml-header">class VentaRemision (src/models/VentaRemision.js)</div>
+      <div class="uml-section">
+        + id: string<br/>
+        + numero_remision: string<br/>
+        + cliente_nombre: string<br/>
+        + fecha, hora: string<br/>
+        + litros: number<br/>
+        + precio_litro: number<br/>
+        + total_cop: number<br/>
+        + metodo_pago, estado: string
+      </div>
+      <div class="uml-section">
+        + generarNumeroRemision(): string<br/>
+        + calcularTotal(): number<br/>
+        + estaPagada(): boolean<br/>
+        + alternarEstadoPago(): string<br/>
+        + toDatabasePayload(): object
+      </div>
+    </div>
+
+    <div class="uml-box">
+      <div class="uml-header">&lt;&lt;service&gt;&gt; SupabaseService (supabaseService.js)</div>
+      <div class="uml-section">
+        - SUPABASE_URL: string<br/>
+        - SUPABASE_ANON_KEY: string
+      </div>
+      <div class="uml-section">
+        + obtenerFinca(): Promise&lt;Finca&gt;<br/>
+        + guardarFinca(fincaData): Promise&lt;object&gt;<br/>
+        + listarRegistrosLeche(): Promise&lt;RegistroLeche[]&gt;<br/>
+        + registrarOrdeno(registro): Promise&lt;RegistroLeche&gt;<br/>
+        + listarClientes() / crearCliente() / eliminarCliente()<br/>
+        + listarVentas() / emitirRemision() / actualizarEstadoVenta()
+      </div>
+    </div>
+
+    <div class="uml-box">
+      <div class="uml-header">&lt;&lt;React Root&gt;&gt; App (src/App.jsx)</div>
+      <div class="uml-section">
+        - state currentTab: string<br/>
+        - state finca: Finca<br/>
+        - state registros: RegistroLeche[]<br/>
+        - state clientes: Cliente[]<br/>
+        - state ventas: VentaRemision[]
+      </div>
+      <div class="uml-section">
+        + useEffect(() =&gt; loadData(), [])<br/>
+        + Renderiza: Sidebar, Header, DashboardView, MiFincaView, LecheDiaView, VentasView, ClientesView
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size: 9pt; background: #F4FBF7; border: 1px solid #BCE5D1; padding: 10px 14px; border-radius: 10px; margin-top: 12px;">
+    <strong>Relaciones UML:</strong>
+    <strong>1) Composición:</strong> <code>Finca (1) *-- (0..*) RegistroLeche</code> (la finca origina los registros de ordeño diario).
+    <strong>2) Agregación:</strong> <code>Cliente (1) o-- (0..*) VentaRemision</code> (un cliente recibe remisiones de venta pero existe independientemente).
+    <strong>3) Dependencia:</strong> <code>App &rarr; SupabaseService &rarr; Modelos POO</code>.
+  </p>
+
+  <!-- IMAGEN 1 DE CÓDIGO: CLASES POO -->
+  <h2>4. Imágenes del Código Fuente del Proyecto</h2>
+
+  <div class="vscode-window">
+    <div class="vscode-header">
+      <div class="vscode-dots">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      </div>
+      <span class="vscode-title">src/models/Finca.js &amp; src/models/RegistroLeche.js</span>
+      <span class="vscode-badge">ES6 Classes / POO</span>
+    </div>
+    <pre class="vscode-code"><span class="cm">// Clase de Dominio: Finca — Calcula ocupación del tanque, meta diaria y promedio por vaca</span>
+<span class="kw">export class</span> <span class="cls">Finca</span> {
+  <span class="fn">constructor</span>(data = {}) {
+    <span class="kw">this</span>.id = data.id || <span class="kw">null</span>;
+    <span class="kw">this</span>.nombre_finca = data.nombre_finca || <span class="str">'Hacienda La Pradera'</span>;
+    <span class="kw">this</span>.propietario_nombre = data.propietario_nombre || <span class="str">'TOMAS GARCIA'</span>;
+    <span class="kw">this</span>.capacidad_tanque_litros = <span class="cls">Number</span>(data.capacidad_tanque_litros ?? <span class="num">500</span>);
+    <span class="kw">this</span>.vacas_en_ordeno = <span class="cls">Number</span>(data.vacas_en_ordeno ?? <span class="num">28</span>);
+    <span class="kw">this</span>.meta_diaria_litros = <span class="cls">Number</span>(data.meta_diaria_litros ?? <span class="num">150</span>);
+  }
+  <span class="fn">calcularPorcentajeOcupacionTanque</span>(litrosActuales) {
+    <span class="kw">if</span> (!<span class="kw">this</span>.capacidad_tanque_litros || <span class="kw">this</span>.capacidad_tanque_litros &lt;= <span class="num">0</span>) <span class="kw">return</span> <span class="num">0</span>;
+    <span class="kw">return</span> <span class="cls">Math</span>.<span class="fn">min</span>(<span class="num">100</span>, <span class="cls">Math</span>.<span class="fn">round</span>((<span class="cls">Number</span>(litrosActuales) / <span class="kw">this</span>.capacidad_tanque_litros) * <span class="num">100</span>));
+  }
+}
+
+<span class="cm">// Clase de Dominio: RegistroLeche — Liquidación financiera de cada ordeño</span>
+<span class="kw">export class</span> <span class="cls">RegistroLeche</span> {
+  <span class="fn">constructor</span>(data = {}) {
+    <span class="kw">this</span>.fecha = data.fecha || <span class="kw">new</span> <span class="cls">Date</span>().<span class="fn">toISOString</span>().<span class="fn">split</span>(<span class="str">'T'</span>)[<span class="num">0</span>];
+    <span class="kw">this</span>.turno = data.turno || <span class="str">'morning'</span>;
+    <span class="kw">this</span>.litros = <span class="cls">Number</span>(data.litros ?? <span class="num">0</span>);
+    <span class="kw">this</span>.precio_litro = <span class="cls">Number</span>(data.precio_litro ?? <span class="num">2200</span>);
+    <span class="kw">this</span>.flete_por_litro = <span class="cls">Number</span>(data.flete_por_litro ?? <span class="num">50</span>);
+  }
+  <span class="fn">calcularSubtotal</span>() { <span class="kw">return this</span>.litros * <span class="kw">this</span>.precio_litro; }
+  <span class="fn">calcularDescuentoFlete</span>() { <span class="kw">return this</span>.litros * <span class="kw">this</span>.flete_por_litro; }
+  <span class="fn">calcularNeto</span>() { <span class="kw">return this</span>.<span class="fn">calcularSubtotal</span>() - <span class="kw">this</span>.<span class="fn">calcularDescuentoFlete</span>(); }
+}</pre>
+  </div>
+
+  <!-- PÁGINA 3: IMÁGENES DE CÓDIGO REACT, SUPABASE Y CSS -->
+  <div class="page-break"></div>
+
+  <div class="vscode-window">
+    <div class="vscode-header">
+      <div class="vscode-dots">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      </div>
+      <span class="vscode-title">src/models/Cliente.js &amp; src/models/VentaRemision.js</span>
+      <span class="vscode-badge">ES6 Classes / POO</span>
+    </div>
+    <pre class="vscode-code"><span class="kw">export class</span> <span class="cls">Cliente</span> {
+  <span class="fn">constructor</span>(data = {}) {
+    <span class="kw">this</span>.id = data.id || <span class="kw">null</span>;
+    <span class="kw">this</span>.nombre = data.nombre || <span class="str">''</span>;
+    <span class="kw">this</span>.empresa = data.empresa || data.nombre || <span class="str">''</span>;
+    <span class="kw">this</span>.contacto_nombre = data.contacto_nombre || <span class="str">'Encargado de Compras'</span>;
+    <span class="kw">this</span>.telefono = data.telefono || <span class="str">''</span>;
+    <span class="kw">this</span>.precio_acordado_litro = <span class="cls">Number</span>(data.precio_acordado_litro ?? <span class="num">2200</span>);
+    <span class="kw">this</span>.ruta = data.ruta || <span class="str">'Ruta General'</span>;
+  }
+  <span class="fn">obtenerEnlaceWhatsApp</span>(mensaje = <span class="str">''</span>) {
+    <span class="kw">const</span> texto = <span class="fn">encodeURIComponent</span>(mensaje || <span class="str">`Hola ${this.contacto_nombre}, despacho Leiti.app`</span>);
+    <span class="kw">return</span> <span class="str">`https://wa.me/${this.telefono_wa}?text=${texto}`</span>;
+  }
+}
+
+<span class="kw">export class</span> <span class="cls">VentaRemision</span> {
+  <span class="fn">constructor</span>(data = {}) {
+    <span class="kw">this</span>.numero_remision = data.numero_remision || <span class="str">`REM-${String(Math.floor(100 + Math.random() * 900)).padStart(4, '0')}`</span>;
+    <span class="kw">this</span>.cliente_nombre = data.cliente_nombre || <span class="str">''</span>;
+    <span class="kw">this</span>.litros = <span class="cls">Number</span>(data.litros ?? <span class="num">0</span>);
+    <span class="kw">this</span>.precio_litro = <span class="cls">Number</span>(data.precio_litro ?? <span class="num">2200</span>);
+    <span class="kw">this</span>.estado = data.estado || <span class="str">'paid'</span>;
+  }
+  <span class="fn">calcularTotal</span>() { <span class="kw">return this</span>.litros * <span class="kw">this</span>.precio_litro; }
+  <span class="fn">alternarEstadoPago</span>() { <span class="kw">return</span> (<span class="kw">this</span>.estado = <span class="kw">this</span>.estado === <span class="str">'paid'</span> ? <span class="str">'pending'</span> : <span class="str">'paid'</span>); }
+}</pre>
+  </div>
+
+  <div class="vscode-window">
+    <div class="vscode-header">
+      <div class="vscode-dots">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      </div>
+      <span class="vscode-title">src/App.jsx — Componente Raíz, Estado Reactivo y Sincronización</span>
+      <span class="vscode-badge">React 18 Hooks</span>
+    </div>
+    <pre class="vscode-code"><span class="kw">export default function</span> <span class="fn">App</span>() {
+  <span class="kw">const</span> [currentTab, setCurrentTab] = <span class="fn">useState</span>(<span class="str">'inicio'</span>);
+  <span class="kw">const</span> [finca, setFinca] = <span class="fn">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [registros, setRegistros] = <span class="fn">useState</span>([]);
+  <span class="kw">const</span> [clientes, setClientes] = <span class="fn">useState</span>([]);
+  <span class="kw">const</span> [ventas, setVentas] = <span class="fn">useState</span>([]);
+  <span class="kw">const</span> [isSyncing, setIsSyncing] = <span class="fn">useState</span>(<span class="kw">false</span>);
+
+  <span class="kw">const</span> <span class="fn">loadData</span> = <span class="kw">async</span> () =&gt; {
+    <span class="fn">setIsSyncing</span>(<span class="kw">true</span>);
+    <span class="kw">const</span> [fincaRes, registrosRes, clientesRes, ventasRes] = <span class="kw">await</span> <span class="cls">Promise</span>.<span class="fn">all</span>([
+      <span class="fn">getFincaData</span>(), <span class="fn">getRegistrosLeche</span>(), <span class="fn">getClientes</span>(), <span class="fn">getVentas</span>()
+    ]);
+    <span class="kw">if</span> (fincaRes?.data) <span class="fn">setFinca</span>(fincaRes.data);
+    <span class="kw">if</span> (registrosRes?.data) <span class="fn">setRegistros</span>(registrosRes.data);
+    <span class="kw">if</span> (clientesRes?.data) <span class="fn">setClientes</span>(clientesRes.data);
+    <span class="kw">if</span> (ventasRes?.data) <span class="fn">setVentas</span>(ventasRes.data);
+    <span class="fn">setIsSyncing</span>(<span class="kw">false</span>);
+  };
+
+  <span class="fn">useEffect</span>(() =&gt; { <span class="fn">loadData</span>(); }, []);
+  <span class="cm">// Renderizado condicional de DashboardView, MiFincaView, LecheDiaView, VentasView y ClientesView</span>
+}</pre>
+  </div>
+
+  <div class="vscode-window">
+    <div class="vscode-header">
+      <div class="vscode-dots">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+      </div>
+      <span class="vscode-title">app.html &amp; src/services/supabaseService.js — Cliente REST PostgreSQL</span>
+      <span class="vscode-badge">Supabase REST API</span>
+    </div>
+    <pre class="vscode-code"><span class="kw">const</span> SUPABASE_URL = <span class="str">"https://cthvxtjwstyezwzuohdx.supabase.co"</span>;
+<span class="kw">async function</span> <span class="fn">sbRest</span>(path, options = {}) {
+  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`${SUPABASE_URL}/rest/v1/${path}`</span>, {
+    method: options.method || <span class="str">'GET'</span>,
+    headers: {
+      <span class="str">'apikey'</span>: SUPABASE_ANON_KEY,
+      <span class="str">'Authorization'</span>: <span class="str">`Bearer ${SUPABASE_ANON_KEY}`</span>,
+      <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+      <span class="str">'Prefer'</span>: options.prefer || <span class="str">'return=representation'</span>
+    },
+    body: options.body ? <span class="cls">JSON</span>.<span class="fn">stringify</span>(options.body) : <span class="kw">undefined</span>
+  });
+  <span class="kw">return await</span> response.<span class="fn">json</span>();
+}</pre>
+  </div>
+
+</body>
+</html>

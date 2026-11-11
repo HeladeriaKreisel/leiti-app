@@ -6,9 +6,14 @@
 
 Aplicación web desarrollada con **React 18**, **Programación Orientada a Objetos (ES6 Classes)**, **Tailwind CSS / CSS3** y conectada en tiempo real a **Supabase PostgreSQL**.
 
+### Integrantes del Proyecto
+- **Tomas Alejandro Garcia Benavides**
+- **Angel Daniel Cortes Garcia**
+
+### Enlaces Oficiales del Proyecto
 - **Aplicación en Vivo (GitHub Pages)**: [https://heladeriakreisel.github.io/leiti-app/](https://heladeriakreisel.github.io/leiti-app/)
 - **Repositorio GitHub**: [https://github.com/HeladeriaKreisel/leiti-app](https://github.com/HeladeriaKreisel/leiti-app)
-- **Base de Datos Supabase (PostgreSQL)**: Proyecto `leitti.appproyect` (`cthvxtjwstyezwzuohdx`)
+- **Base de Datos Supabase (PostgreSQL)**: Proyecto `leitti.appproyect` (`https://cthvxtjwstyezwzuohdx.supabase.co`)
 
 ---
 
