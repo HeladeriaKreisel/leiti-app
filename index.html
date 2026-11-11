@@ -98,6 +98,7 @@
     }
     ::-webkit-scrollbar { display: none; }
   </style>
+  <link rel="stylesheet" href="src/styles/index.css" />
 
   <!-- React 18 y Babel -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -156,6 +157,64 @@
       }
 
       return data;
+    }
+
+    // ============================================================================
+    // MODELO DE CLASES POO (ACORDE AL DIAGRAMA DE CLASES UML EN src/models/)
+    // ============================================================================
+    class Finca {
+      constructor(data = {}) {
+        Object.assign(this, data);
+        this.capacidad_tanque_litros = Number(data.capacidad_tanque_litros ?? 500);
+        this.meta_diaria_litros = Number(data.meta_diaria_litros ?? 150);
+        this.vacas_en_ordeno = Number(data.vacas_en_ordeno ?? 28);
+      }
+      calcularPorcentajeOcupacionTanque(litrosActuales) {
+        return this.capacidad_tanque_litros > 0
+          ? Math.min(100, Math.round((Number(litrosActuales) / this.capacidad_tanque_litros) * 100))
+          : 0;
+      }
+      calcularCumplimientoMeta(litrosDia) {
+        return this.meta_diaria_litros > 0
+          ? Math.min(100, Math.round((Number(litrosDia) / this.meta_diaria_litros) * 100))
+          : 0;
+      }
+    }
+
+    class Cliente {
+      constructor(data = {}) {
+        Object.assign(this, data);
+        this.precio_acordado_litro = Number(data.precio_acordado_litro ?? 2200);
+      }
+      normalizarWhatsApp(telefono) {
+        const digits = String(telefono || this.telefono || '').replace(/\D/g, '');
+        return digits.startsWith('57') ? digits : `57${digits}`;
+      }
+    }
+
+    class RegistroLeche {
+      constructor(data = {}) {
+        Object.assign(this, data);
+        this.litros = Number(data.litros ?? 0);
+        this.precio_litro = Number(data.precio_litro ?? 2200);
+        this.flete_por_litro = Number(data.flete_por_litro ?? 50);
+      }
+      calcularSubtotal() { return this.litros * this.precio_litro; }
+      calcularDescuentoFlete() { return this.litros * this.flete_por_litro; }
+      calcularNeto() { return this.calcularSubtotal() - this.calcularDescuentoFlete(); }
+    }
+
+    class VentaRemision {
+      constructor(data = {}) {
+        Object.assign(this, data);
+        this.litros = Number(data.litros ?? 0);
+        this.precio_litro = Number(data.precio_litro ?? 2200);
+      }
+      calcularTotal() { return this.litros * this.precio_litro; }
+      alternarEstadoPago() {
+        this.estado = this.estado === 'paid' ? 'pending' : 'paid';
+        return this.estado;
+      }
     }
 
     function formatCOP(num) {

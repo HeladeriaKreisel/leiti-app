@@ -6,6 +6,7 @@ export default function Sidebar({ currentTab, setCurrentTab, finca, isConnected 
     { id: 'mi-finca', label: 'Mi Finca', icon: 'agriculture' },
     { id: 'leche-del-dia', label: 'Leche del Día', icon: 'water_drop' },
     { id: 'ventas', label: 'Ventas', icon: 'point_of_sale' },
+    { id: 'clientes', label: 'Clientes / Plantas', icon: 'groups' },
   ];
 
   return (

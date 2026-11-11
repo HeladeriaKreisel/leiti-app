@@ -1,9 +1,9 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { Finca, Cliente, RegistroLeche, VentaRemision } from '../models';
 
-// Datos por defecto (Seed inicial local para cuando no hay conexión a Supabase)
-const DEFAULT_FINCA = {
+const DEFAULT_FINCA = new Finca({
   nombre_finca: 'Hacienda La Pradera',
-  propietario_nombre: 'Don Carlos Mendoza',
+  propietario_nombre: 'TOMAS GARCIA',
   propietario_cedula: 'CC 71.492.308-4',
   telefono: '+57 312 489 9012',
   email: 'carlos.mendoza@lapradera.co',
@@ -20,10 +20,10 @@ const DEFAULT_FINCA = {
   terneros: 5,
   meta_diaria_litros: 150,
   precio_sugerido_litro: 2200
-};
+});
 
 const DEFAULT_CLIENTES = [
-  {
+  new Cliente({
     clave_alias: 'san_jeronimo',
     nombre: 'Lácteos San Jerónimo (Ruta Norte)',
     empresa: 'Lácteos San Jerónimo S.A.S.',
@@ -32,8 +32,8 @@ const DEFAULT_CLIENTES = [
     telefono_wa: '573104558291',
     precio_acordado_litro: 2180,
     ruta: 'Ruta Norte'
-  },
-  {
+  }),
+  new Cliente({
     clave_alias: 'dona_martha',
     nombre: 'Quesera Doña Martha (Pueblo)',
     empresa: 'Quesos Artesanales Doña Martha',
@@ -42,8 +42,8 @@ const DEFAULT_CLIENTES = [
     telefono_wa: '573218764022',
     precio_acordado_litro: 2200,
     ruta: 'Ruta Centro Urbano'
-  },
-  {
+  }),
+  new Cliente({
     clave_alias: 'acopio',
     nombre: 'Acopio Regional CooLeche',
     empresa: 'Cooperativa Lechera Regional',
@@ -52,11 +52,11 @@ const DEFAULT_CLIENTES = [
     telefono_wa: '573009981244',
     precio_acordado_litro: 2140,
     ruta: 'Ruta Industrial'
-  }
+  })
 ];
 
 const DEFAULT_REGISTROS = [
-  {
+  new RegistroLeche({
     id: 'reg-01',
     fecha: new Date().toISOString().split('T')[0],
     hora: '05:45',
@@ -64,14 +64,12 @@ const DEFAULT_REGISTROS = [
     litros: 145,
     precio_litro: 2200,
     flete_por_litro: 50,
-    subtotal_cop: 319000,
-    neto_cop: 311750,
     tanque_temperatura: 3.4,
     operador: 'Hernán Gómez',
     lote: 'Lote 1',
-    vacas_ordeñadas: 28
-  },
-  {
+    vacas_ordenadas: 28
+  }),
+  new RegistroLeche({
     id: 'reg-02',
     fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0],
     hora: '05:30',
@@ -79,17 +77,15 @@ const DEFAULT_REGISTROS = [
     litros: 133,
     precio_litro: 2200,
     flete_por_litro: 50,
-    subtotal_cop: 292600,
-    neto_cop: 285950,
     tanque_temperatura: 3.5,
     operador: 'Hernán Gómez',
     lote: 'Lote 1',
-    vacas_ordeñadas: 28
-  }
+    vacas_ordenadas: 28
+  })
 ];
 
 const DEFAULT_VENTAS = [
-  {
+  new VentaRemision({
     id: 'vnt-01',
     numero_remision: 'REM-0294',
     cliente_nombre: 'Lácteos San Jerónimo (Ruta Norte)',
@@ -102,38 +98,9 @@ const DEFAULT_VENTAS = [
     estado: 'paid',
     conductor_nombre: 'Rodrigo Velásquez',
     placa_vehiculo: 'TRK-982'
-  },
-  {
-    id: 'vnt-02',
-    numero_remision: 'REM-0293',
-    cliente_nombre: 'Quesera Doña Martha (Pueblo)',
-    fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-    hora: '08:00',
-    litros: 150,
-    precio_litro: 2200,
-    total_cop: 330000,
-    metodo_pago: 'Efectivo contra entrega',
-    estado: 'paid',
-    conductor_nombre: 'Carlos Soto',
-    placa_vehiculo: 'VAN-441'
-  },
-  {
-    id: 'vnt-03',
-    numero_remision: 'REM-0292',
-    cliente_nombre: 'Acopio Regional CooLeche',
-    fecha: new Date(Date.now() - 172800000).toISOString().split('T')[0],
-    hora: '06:30',
-    litros: 350,
-    precio_litro: 2140,
-    total_cop: 749000,
-    metodo_pago: 'Transferencia Bancolombia',
-    estado: 'pending',
-    conductor_nombre: 'Hernán Darío',
-    placa_vehiculo: 'CST-109'
-  }
+  })
 ];
 
-// Helper para localStorage
 function getLocal(key, fallback) {
   try {
     const val = localStorage.getItem(`leitti_${key}`);
@@ -151,183 +118,204 @@ function setLocal(key, data) {
   }
 }
 
-// ==========================================
-// 1. SERVICIOS DE FINCA
-// ==========================================
-export async function getFincaData() {
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('fincas')
-        .select('*')
-        .limit(1)
-        .maybeSingle();
-
-      if (!error && data) {
-        setLocal('finca', data);
-        return { data, source: 'supabase' };
+/**
+ * Clase de Servicio: SupabaseService
+ * Gestiona la persistencia en PostgreSQL (Supabase) y sincronización local de las entidades POO.
+ */
+export class SupabaseService {
+  static async obtenerFinca() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.from('fincas').select('*').limit(1).maybeSingle();
+        if (!error && data) {
+          const instancia = new Finca(data);
+          setLocal('finca', instancia);
+          return { data: instancia, source: 'supabase' };
+        }
+      } catch (err) {
+        console.warn('Error conectando a Supabase para fincas:', err);
       }
-    } catch (err) {
-      console.warn('Error conectando a Supabase para fincas, usando local:', err);
     }
+    return { data: new Finca(getLocal('finca', DEFAULT_FINCA)), source: 'local' };
   }
-  return { data: getLocal('finca', DEFAULT_FINCA), source: 'local' };
-}
 
-export async function saveFincaData(fincaData) {
-  setLocal('finca', fincaData);
-  if (isSupabaseConfigured) {
-    try {
-      const { data: existing } = await supabase.from('fincas').select('id').limit(1).maybeSingle();
-      if (existing) {
-        await supabase.from('fincas').update(fincaData).eq('id', existing.id);
-      } else {
-        await supabase.from('fincas').insert([fincaData]);
+  static async guardarFinca(fincaData) {
+    const instancia = new Finca(fincaData);
+    setLocal('finca', instancia);
+    if (isSupabaseConfigured) {
+      try {
+        const payload = instancia.toDatabasePayload();
+        const { data: existing } = await supabase.from('fincas').select('id').limit(1).maybeSingle();
+        if (existing) {
+          await supabase.from('fincas').update(payload).eq('id', existing.id);
+        } else {
+          await supabase.from('fincas').insert([payload]);
+        }
+        return { success: true, source: 'supabase' };
+      } catch (err) {
+        console.warn('Fallo guardando finca en Supabase:', err);
+        return { success: true, source: 'local_cached' };
       }
-      return { success: true, source: 'supabase' };
-    } catch (err) {
-      console.warn('Fallo guardando en Supabase:', err);
-      return { success: true, source: 'local_cached' };
     }
+    return { success: true, source: 'local' };
   }
-  return { success: true, source: 'local' };
-}
 
-// ==========================================
-// 2. SERVICIOS DE REGISTROS DE LECHE
-// ==========================================
-export async function getRegistrosLeche() {
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('registros_leche')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        setLocal('registros', data);
-        return { data, source: 'supabase' };
+  static async listarRegistrosLeche() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('registros_leche')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (!error && data) {
+          const list = data.map((r) => new RegistroLeche(r));
+          setLocal('registros', list);
+          return { data: list, source: 'supabase' };
+        }
+      } catch (err) {
+        console.warn('Error leyendo registros de Supabase:', err);
       }
-    } catch (err) {
-      console.warn('Error leyendo registros de Supabase:', err);
     }
+    return { data: getLocal('registros', DEFAULT_REGISTROS).map((r) => new RegistroLeche(r)), source: 'local' };
   }
-  return { data: getLocal('registros', DEFAULT_REGISTROS), source: 'local' };
-}
 
-export async function addRegistroLeche(registro) {
-  const localList = getLocal('registros', DEFAULT_REGISTROS);
-  const nuevoRegistro = {
-    ...registro,
-    id: registro.id || `reg-${Date.now()}`,
-    created_at: new Date().toISOString()
-  };
-  const updatedList = [nuevoRegistro, ...localList];
-  setLocal('registros', updatedList);
+  static async registrarOrdeno(registro) {
+    const instancia = new RegistroLeche(registro);
+    const localList = getLocal('registros', DEFAULT_REGISTROS);
+    const nuevoLocal = { ...instancia, id: instancia.id || `reg-${Date.now()}` };
+    setLocal('registros', [nuevoLocal, ...localList]);
 
-  if (isSupabaseConfigured) {
-    try {
-      const { id, created_at, subtotal_cop, neto_cop, descuento_flete, ...dbPayload } = registro;
-      const { data, error } = await supabase
-        .from('registros_leche')
-        .insert([dbPayload])
-        .select();
-
-      if (!error && data) {
-        return { success: true, data: data[0], source: 'supabase' };
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('registros_leche')
+          .insert([instancia.toDatabasePayload()])
+          .select();
+        if (!error && data && data[0]) {
+          return { success: true, data: new RegistroLeche(data[0]), source: 'supabase' };
+        }
+      } catch (err) {
+        console.warn('Error insertando registro en Supabase:', err);
       }
-    } catch (err) {
-      console.warn('Error insertando registro en Supabase:', err);
     }
+    return { success: true, data: new RegistroLeche(nuevoLocal), source: 'local' };
   }
-  return { success: true, data: nuevoRegistro, source: 'local' };
-}
 
-// ==========================================
-// 3. SERVICIOS DE CLIENTES
-// ==========================================
-export async function getClientes() {
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('clientes')
-        .select('*')
-        .order('nombre');
-
-      if (!error && data && data.length > 0) {
-        setLocal('clientes', data);
-        return { data, source: 'supabase' };
+  static async listarClientes() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.from('clientes').select('*').order('nombre');
+        if (!error && data) {
+          const list = data.map((c) => new Cliente(c));
+          setLocal('clientes', list);
+          return { data: list, source: 'supabase' };
+        }
+      } catch (err) {
+        console.warn('Error leyendo clientes en Supabase:', err);
       }
-    } catch (err) {
-      console.warn('Error leyendo clientes en Supabase:', err);
     }
+    return { data: getLocal('clientes', DEFAULT_CLIENTES).map((c) => new Cliente(c)), source: 'local' };
   }
-  return { data: getLocal('clientes', DEFAULT_CLIENTES), source: 'local' };
-}
 
-// ==========================================
-// 4. SERVICIOS DE VENTAS / REMISIONES
-// ==========================================
-export async function getVentas() {
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('ventas_remisiones')
-        .select('*')
-        .order('created_at', { ascending: false });
+  static async crearCliente(clienteData) {
+    const instancia = new Cliente(clienteData);
+    const localList = getLocal('clientes', DEFAULT_CLIENTES);
+    const nuevoLocal = { ...instancia, id: instancia.id || `cli-${Date.now()}` };
+    setLocal('clientes', [...localList, nuevoLocal]);
 
-      if (!error && data && data.length > 0) {
-        setLocal('ventas', data);
-        return { data, source: 'supabase' };
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('clientes')
+          .insert([instancia.toDatabasePayload()])
+          .select();
+        if (!error && data && data[0]) {
+          return { success: true, data: new Cliente(data[0]), source: 'supabase' };
+        }
+      } catch (err) {
+        console.warn('Error creando cliente en Supabase:', err);
       }
-    } catch (err) {
-      console.warn('Error leyendo ventas en Supabase:', err);
     }
+    return { success: true, data: new Cliente(nuevoLocal), source: 'local' };
   }
-  return { data: getLocal('ventas', DEFAULT_VENTAS), source: 'local' };
-}
 
-export async function addVenta(venta) {
-  const localVentas = getLocal('ventas', DEFAULT_VENTAS);
-  const nuevaVenta = {
-    ...venta,
-    id: venta.id || `vnt-${Date.now()}`,
-    created_at: new Date().toISOString()
-  };
-  const updatedList = [nuevaVenta, ...localVentas];
-  setLocal('ventas', updatedList);
-
-  if (isSupabaseConfigured) {
-    try {
-      const { data, error } = await supabase
-        .from('ventas_remisiones')
-        .insert([venta])
-        .select();
-
-      if (!error && data) {
-        return { success: true, data: data[0], source: 'supabase' };
+  static async eliminarCliente(id) {
+    const localList = getLocal('clientes', DEFAULT_CLIENTES).filter((c) => c.id !== id);
+    setLocal('clientes', localList);
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('clientes').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Error eliminando cliente en Supabase:', err);
       }
-    } catch (err) {
-      console.warn('Error registrando venta en Supabase:', err);
     }
+    return { success: true };
   }
-  return { success: true, data: nuevaVenta, source: 'local' };
+
+  static async listarVentas() {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('ventas_remisiones')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (!error && data) {
+          const list = data.map((v) => new VentaRemision(v));
+          setLocal('ventas', list);
+          return { data: list, source: 'supabase' };
+        }
+      } catch (err) {
+        console.warn('Error leyendo ventas en Supabase:', err);
+      }
+    }
+    return { data: getLocal('ventas', DEFAULT_VENTAS).map((v) => new VentaRemision(v)), source: 'local' };
+  }
+
+  static async emitirRemision(ventaData) {
+    const instancia = new VentaRemision(ventaData);
+    const localVentas = getLocal('ventas', DEFAULT_VENTAS);
+    const nuevaLocal = { ...instancia, id: instancia.id || `vnt-${Date.now()}` };
+    setLocal('ventas', [nuevaLocal, ...localVentas]);
+
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('ventas_remisiones')
+          .insert([instancia.toDatabasePayload()])
+          .select();
+        if (!error && data && data[0]) {
+          return { success: true, data: new VentaRemision(data[0]), source: 'supabase' };
+        }
+      } catch (err) {
+        console.warn('Error registrando venta en Supabase:', err);
+      }
+    }
+    return { success: true, data: new VentaRemision(nuevaLocal), source: 'local' };
+  }
+
+  static async actualizarEstadoVenta(id, nuevoEstado) {
+    const localVentas = getLocal('ventas', DEFAULT_VENTAS);
+    const updatedList = localVentas.map((v) => (v.id === id ? { ...v, estado: nuevoEstado } : v));
+    setLocal('ventas', updatedList);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('ventas_remisiones').update({ estado: nuevoEstado }).eq('id', id);
+      } catch (err) {
+        console.warn('Error actualizando venta en Supabase:', err);
+      }
+    }
+    return { success: true };
+  }
 }
 
-export async function updateEstadoVenta(id, nuevoEstado) {
-  const localVentas = getLocal('ventas', DEFAULT_VENTAS);
-  const updatedList = localVentas.map(v => v.id === id ? { ...v, estado: nuevoEstado } : v);
-  setLocal('ventas', updatedList);
-
-  if (isSupabaseConfigured) {
-    try {
-      await supabase
-        .from('ventas_remisiones')
-        .update({ estado: nuevoEstado })
-        .eq('id', id);
-    } catch (err) {
-      console.warn('Error actualizando venta en Supabase:', err);
-    }
-  }
-  return { success: true };
-}
+export const getFincaData = () => SupabaseService.obtenerFinca();
+export const saveFincaData = (data) => SupabaseService.guardarFinca(data);
+export const getRegistrosLeche = () => SupabaseService.listarRegistrosLeche();
+export const addRegistroLeche = (data) => SupabaseService.registrarOrdeno(data);
+export const getClientes = () => SupabaseService.listarClientes();
+export const addCliente = (data) => SupabaseService.crearCliente(data);
+export const deleteCliente = (id) => SupabaseService.eliminarCliente(id);
+export const getVentas = () => SupabaseService.listarVentas();
+export const addVenta = (data) => SupabaseService.emitirRemision(data);
+export const updateEstadoVenta = (id, estado) => SupabaseService.actualizarEstadoVenta(id, estado);
