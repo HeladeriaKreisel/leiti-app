@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leiti.app - Gestión Ganadera & Control Lechero</title>
+  <link rel="icon" type="image/png" href="logo-icon.png" />
+
+  <!-- Tipografía Plus Jakarta Sans y Google Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "secondary-fixed-dim": "#92d5a7",
+            "on-surface-variant": "#3f4941",
+            "tertiary-fixed-dim": "#bdcabe",
+            "surface-tint": "#186c42",
+            "surface-dim": "#d9dad8",
+            "surface-container": "#edeeeb",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#eaf7eb",
+            "on-primary-container": "#ceffdb",
+            "on-primary-fixed-variant": "#00522f",
+            "on-tertiary-fixed-variant": "#3e4a41",
+            "outline-variant": "#bfc9bf",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#2e312f",
+            "inverse-on-surface": "#f0f1ee",
+            "primary-container": "#2e7d52",
+            "on-error": "#ffffff",
+            "tertiary-fixed": "#d9e6da",
+            "primary": "#0a643b",
+            "inverse-primary": "#88d7a5",
+            "on-secondary-fixed-variant": "#08522f",
+            "background": "#f9faf7",
+            "secondary-fixed": "#adf2c2",
+            "on-background": "#191c1b",
+            "error-container": "#ffdad6",
+            "surface-bright": "#f9faf7",
+            "surface": "#f9faf7",
+            "primary-fixed-dim": "#88d7a5",
+            "tertiary-container": "#667268",
+            "tertiary": "#4e5a51",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#00210f",
+            "on-tertiary-fixed": "#131e17",
+            "outline": "#6f7a71",
+            "on-secondary-container": "#30704a",
+            "surface-variant": "#e2e3e0",
+            "on-tertiary": "#ffffff",
+            "on-surface": "#191c1b",
+            "on-primary-fixed": "#002110",
+            "surface-container-high": "#e7e8e6",
+            "surface-container-low": "#f3f4f1",
+            "secondary-container": "#adf2c2",
+            "surface-container-highest": "#e2e3e0",
+            "on-secondary": "#ffffff",
+            "primary-fixed": "#a4f4bf",
+            "secondary": "#296a45",
+            "error": "#ba1a1a"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          spacing: {
+            "gutter-mobile": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-lg": "1rem",
+            "space-xl": "1.5rem",
+            "space-2xl": "2rem"
+          },
+          fontFamily: {
+            body: ["Plus Jakarta Sans", "sans-serif"],
+            display: ["Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overscroll-behavior: none;
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+
+  <!-- React 18 y Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-background text-on-surface antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    // ============================================================================
+    // CONEXIÓN DIRECTA REST A SUPABASE (SIN DEPENDENCIAS EXTERNAS QUE SE BLOQUEEN)
+    // Proyecto: leitti.appproyect (cthvxtjwstyezwzuohdx)
+    // ============================================================================
+    const SUPABASE_URL = "https://cthvxtjwstyezwzuohdx.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0aHZ4dGp3c3R5ZXp3enVvaGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxNTc4NDgsImV4cCI6MjEwOTczMzg0OH0.LEJhPmoX0Me1OALib4gEljREIaTJkM8y4wRkd_7kVik";
+
+    // Limpiar cachés antiguos de pruebas locales previas
+    try {
+      localStorage.removeItem('leitti_sb_key');
+      localStorage.removeItem('leitti_sb_url');
+      localStorage.removeItem('leitti_ventas');
+      localStorage.removeItem('leitti_registros');
+      localStorage.removeItem('leitti_clientes');
+    } catch (e) {}
+
+    async function sbRest(path, options = {}) {
+      const url = `${SUPABASE_URL}/rest/v1/${path}`;
+      const headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': options.prefer || 'return=representation',
+        ...(options.headers || {})
+      };
+
+      const response = await fetch(url, {
+        method: options.method || 'GET',
+        headers,
+        body: options.body ? JSON.stringify(options.body) : undefined
+      });
+
+      const text = await response.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (e) {
+        data = text;
+      }
+
+      if (!response.ok) {
+        const msg = (data && (data.message || data.details || data.hint)) || `HTTP ${response.status}`;
+        throw new Error(msg);
+      }
+
+      return data;
+    }
+
+    function formatCOP(num) {
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        maximumFractionDigits: 0
+      }).format(Number(num) || 0);
+    }
+
+    // ==============================================================
+    // COMPONENTE: TOAST NOTIFICATIONS
+    // ==============================================================
+    function ToastNotification({ toast, onClose }) {
+      if (!toast.visible) return null;
+      const isError = toast.type === 'error';
+      return (
+        <div className="fixed bottom-6 right-6 z-50 transition-all duration-300">
+          <div className={`flex items-center gap-space-md px-space-xl py-space-md rounded-xl shadow-xl border ${
+            isError ? 'bg-error-container text-on-error-container border-error/30' : 'bg-primary text-on-primary border-primary/20'
+          }`}>
+            <span className="material-symbols-outlined text-[24px]">
+              {isError ? 'warning' : 'check_circle'}
+            </span>
+            <div className="flex flex-col pr-space-md">
+              <span className="font-bold text-[14px]">{toast.title}</span>
+              <span className="text-[13px] opacity-95">{toast.message}</span>
+            </div>
+            <button onClick={onClose} className="p-1 hover:bg-black/10 rounded-lg">
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ==============================================================
+    // COMPONENTE: SIDEBAR CON EL NUEVO LOGO LEITI.APP
+    // ==============================================================
+    function Sidebar({ currentTab, setCurrentTab, finca, connOk, stats }) {
+      const items = [
+        { id: 'inicio', label: 'Inicio', icon: 'grid_view' },
+        { id: 'mi-finca', label: 'Mi Finca', icon: 'agriculture' },
+        { id: 'leche-del-dia', label: 'Leche del Día', icon: 'water_drop', badge: stats.registros },
+        { id: 'ventas', label: 'Ventas y Remisiones', icon: 'point_of_sale', badge: stats.ventas },
+        { id: 'clientes', label: 'Clientes / Plantas', icon: 'groups', badge: stats.clientes },
+      ];
+
+      return (
+        <aside className="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex flex-col justify-between border-r border-outline-variant/30 select-none">
+          <div>
+            <div className="h-24 px-space-xl flex items-center gap-space-md border-b border-surface-container-low">
+              <img
+                src="logo-icon.png"
+                alt="Logo Leiti.app"
+                className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-outline-variant/20 shrink-0"
+              />
+              <div className="flex flex-col">
+                <span className="text-[22px] font-extrabold tracking-tight text-[#1d334a] leading-none">
+                  Leiti<span className="text-[#69b6bf] font-semibold">.app</span>
+                </span>
+                <span className="text-[11px] text-tertiary uppercase tracking-wider font-bold mt-1">Gestión Ganadera</span>
+              </div>
+            </div>
+
+            <div className="px-space-md mt-space-md">
+              <nav className="flex flex-col gap-1.5">
+                {items.map(item => {
+                  const active = currentTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setCurrentTab(item.id)}
+                      className={`flex items-center justify-between px-space-lg py-space-md rounded-xl transition-all text-left w-full font-bold text-[14px] ${
+                        active
+                          ? 'bg-secondary-container text-on-secondary-container shadow-xs'
+                          : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
+                      }`}
+                    >
+                      <div className="flex items-center gap-space-md">
+                        <span className={`material-symbols-outlined text-[22px] ${active ? 'text-primary' : 'text-tertiary'}`}>
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </div>
+                      {typeof item.badge === 'number' && (
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-extrabold ${
+                          active ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          <div className="p-space-md">
+            <div className="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-sm border border-outline-variant/20">
+              <div className="flex items-center gap-space-md">
+                <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-on-primary text-[20px]">person</span>
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="font-bold text-[13px] text-on-surface truncate">
+                    {finca?.propietario_nombre || 'TOMAS GARCIA'}
+                  </span>
+                  <span className="text-[11px] text-on-surface-variant truncate">
+                    {finca?.nombre_finca || 'Hacienda La Pradera'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-space-xs border-t border-surface-container-high/60">
+                <div className="flex items-center gap-space-xs">
+                  <span className={`w-2.5 h-2.5 rounded-full ${connOk ? 'bg-primary animate-pulse' : 'bg-error'}`}></span>
+                  <span className={`text-[11px] font-bold ${connOk ? 'text-primary' : 'text-error'}`}>
+                    {connOk ? 'Supabase Conectado' : 'Sin Conexión'}
+                  </span>
+                </div>
+                <span className="text-[11px] text-tertiary">PostgreSQL v17</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      );
+    }
+
+    // ==============================================================
+    // COMPONENTE: HEADER
+    // ==============================================================
+    function Header({ onSync, isSyncing, lastSync }) {
+      const fechaHoy = new Intl.DateTimeFormat('es-CO', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(new Date());
+
+      return (
+        <header className="fixed top-0 left-72 right-0 h-20 bg-surface/90 backdrop-blur-xl shadow-xs z-30 px-space-2xl flex items-center justify-between border-b border-outline-variant/20">
+          <div className="flex items-center gap-space-lg">
+            <div className="flex items-center gap-space-sm bg-surface-container-lowest px-space-lg py-space-xs rounded-xl shadow-xs border border-outline-variant/20">
+              <span className="material-symbols-outlined text-tertiary text-[18px]">calendar_today</span>
+              <span className="font-semibold text-[14px] text-on-surface capitalize">{fechaHoy}</span>
+            </div>
+            {lastSync && (
+              <span className="text-[12px] text-tertiary hidden md:inline">
+                Última sincronización con Supabase: <strong>{lastSync}</strong>
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-space-md">
+            <button
+              onClick={onSync}
+              disabled={isSyncing}
+              className="flex items-center gap-space-xs px-space-lg py-space-sm bg-secondary-container text-on-secondary-container rounded-xl font-bold text-[13px] hover:bg-secondary-fixed-dim transition-all shadow-xs active:scale-95 disabled:opacity-50"
+            >
+              <span className={`material-symbols-outlined text-[18px] ${isSyncing ? 'animate-spin' : ''}`}>sync</span>
+              <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Supabase'}</span>
+            </button>
+          </div>
+        </header>
+      );
+    }
+
+    // ==============================================================
+    // MODAL: CREAR / EDITAR CLIENTE EN SUPABASE
+    // ==============================================================
+    function ClienteModal({ isOpen, onClose, onSaved, initialData }) {
+      const [nombre, setNombre] = useState('');
+      const [empresa, setEmpresa] = useState('');
+      const [contacto, setContacto] = useState('');
+      const [telefono, setTelefono] = useState('');
+      const [precio, setPrecio] = useState(2200);
+      const [ruta, setRuta] = useState('Ruta Principal');
+      const [saving, setSaving] = useState(false);
+
+      useEffect(() => {
+        if (initialData) {
+          setNombre(initialData.nombre || '');
+          setEmpresa(initialData.empresa || '');
+          setContacto(initialData.contacto_nombre || '');
+          setTelefono(initialData.telefono || '');
+          setPrecio(initialData.precio_acordado_litro || 2200);
+          setRuta(initialData.ruta || 'Ruta Principal');
+        } else {
+          setNombre('');
+          setEmpresa('');
+          setContacto('');
+          setTelefono('+57 300 ');
+          setPrecio(2200);
+          setRuta('Ruta Principal');
+        }
+      }, [initialData, isOpen]);
+
+      if (!isOpen) return null;
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!nombre.trim()) return;
+        setSaving(true);
+        try {
+          const cleanWa = telefono.replace(/[^0-9]/g, '');
+          const alias = initialData?.clave_alias || (nombre.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 25) + '_' + Math.floor(100 + Math.random() * 900));
+
+          const payload = {
+            clave_alias: alias,
+            nombre: nombre.trim(),
+            empresa: empresa.trim() || nombre.trim(),
+            contacto_nombre: contacto.trim() || nombre.trim(),
+            telefono: telefono.trim(),
+            telefono_wa: cleanWa || '573000000000',
+            precio_acordado_litro: Number(precio) || 2200,
+            ruta: ruta.trim() || 'Ruta Principal',
+            activo: true
+          };
+
+          let result;
+          if (initialData?.id) {
+            result = await sbRest(`clientes?id=eq.${initialData.id}`, {
+              method: 'PATCH',
+              body: payload
+            });
+          } else {
+            result = await sbRest('clientes', {
+              method: 'POST',
+              body: payload
+            });
+          }
+
+          const savedRow = Array.isArray(result) ? result[0] : result;
+          onSaved(savedRow, Boolean(initialData?.id));
+          onClose();
+        } catch (err) {
+          alert('Error guardando cliente en Supabase: ' + err.message);
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="bg-surface-container-lowest p-space-2xl rounded-2xl shadow-2xl max-w-lg w-full flex flex-col gap-space-md border border-outline-variant/30">
+            <div className="flex items-center justify-between border-b border-surface-container-low pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">person_add</span>
+                <h3 className="font-extrabold text-[18px] text-on-surface">
+                  {initialData?.id ? 'Editar Cliente en Supabase' : 'Nuevo Cliente / Comprador'}
+                </h3>
+              </div>
+              <button type="button" onClick={onClose} className="p-1 hover:bg-surface-container-low rounded-lg">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+              <div className="sm:col-span-2">
+                <label className="font-bold text-[12px] block mb-1">Nombre del Cliente / Planta Lechera *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Lácteos El Trébol (Ruta Sur)"
+                  value={nombre}
+                  onChange={e => setNombre(e.target.value)}
+                  className="w-full h-11 bg-surface-container-low px-3 rounded-xl font-semibold text-[14px]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-[12px] block mb-1">Persona de Contacto</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Don Roberto Gómez"
+                  value={contacto}
+                  onChange={e => setContacto(e.target.value)}
+                  className="w-full h-11 bg-surface-container-low px-3 rounded-xl text-[14px]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-[12px] block mb-1">Teléfono / WhatsApp *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: +57 310 555 1234"
+                  value={telefono}
+                  onChange={e => setTelefono(e.target.value)}
+                  className="w-full h-11 bg-surface-container-low px-3 rounded-xl text-[14px]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-[12px] block mb-1">Precio Acordado / Litro (COP) *</label>
+                <input
+                  type="number"
+                  required
+                  step="10"
+                  value={precio}
+                  onChange={e => setPrecio(e.target.value)}
+                  className="w-full h-11 bg-surface-container-low px-3 rounded-xl font-bold text-primary text-[15px]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-[12px] block mb-1">Ruta de Recolección</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Ruta Norte"
+                  value={ruta}
+                  onChange={e => setRuta(e.target.value)}
+                  className="w-full h-11 bg-surface-container-low px-3 rounded-xl text-[14px]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-surface-container-low">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 bg-surface-container-low rounded-xl font-bold text-[13px]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-[13px] shadow-sm hover:bg-primary-container disabled:opacity-50"
+              >
+                {saving ? 'Guardando en Supabase...' : 'Guardar Cliente en Supabase'}
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    // ==============================================================
+    // VISTA 1: INICIO / DASHBOARD
+    // ==============================================================
+    function DashboardView({ finca, registros, ventas, clientes, onNavigate }) {
+      const litrosTotal = registros.reduce((acc, r) => acc + (Number(r.litros) || 0), 0);
+      const valorNetoTotal = registros.reduce((acc, r) => acc + (Number(r.neto_cop) || Number(r.subtotal_cop) || (Number(r.litros) * Number(r.precio_litro))), 0);
+      const litrosVendidos = ventas.reduce((acc, v) => acc + (Number(v.litros) || 0), 0);
+      const totalFacturado = ventas.reduce((acc, v) => acc + (Number(v.total_cop) || 0), 0);
+
+      const ultimoOrdeno = registros[0]?.litros ? Number(registros[0].litros) : 145;
+      const capacidadTanque = Number(finca?.capacidad_tanque_litros) || 500;
+      const pctTanque = Math.min(Math.round((ultimoOrdeno / capacidadTanque) * 100), 100);
+
+      return (
+        <div className="flex flex-col gap-space-xl">
+          {/* Top Banner */}
+          <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-space-sm flex-wrap">
+                <span className="text-[11px] uppercase tracking-wider text-primary font-bold bg-secondary-container px-space-md py-0.5 rounded-full">
+                  En Línea con Supabase
+                </span>
+                <span className="text-[13px] text-on-surface-variant font-medium">
+                  {finca?.nombre_finca} • {finca?.sector} ({finca?.codigo_ica})
+                </span>
+              </div>
+              <h1 className="text-[28px] font-extrabold text-on-surface">
+                Bienvenido, {finca?.propietario_nombre || 'TOMAS GARCIA'}
+              </h1>
+              <p className="text-[14px] text-on-surface-variant">
+                Todos los cambios que realices aquí se guardan directamente en PostgreSQL (proyecto <code>leitti.appproyect</code>).
+              </p>
+            </div>
+            <div className="flex items-center gap-space-md flex-wrap">
+              <button
+                onClick={() => onNavigate('leche-del-dia')}
+                className="flex items-center gap-space-xs px-space-xl py-space-md bg-primary text-on-primary rounded-xl font-bold shadow-md hover:bg-primary-container transition-all"
+              >
+                <span className="material-symbols-outlined text-[20px]">water_drop</span>
+                <span>Registrar Ordeño</span>
+              </button>
+              <button
+                onClick={() => onNavigate('ventas')}
+                className="flex items-center gap-space-xs px-space-xl py-space-md bg-secondary-container text-on-secondary-container rounded-xl font-bold hover:bg-secondary-fixed-dim transition-all"
+              >
+                <span className="material-symbols-outlined text-[20px]">receipt_long</span>
+                <span>Nueva Venta</span>
+              </button>
+              <button
+                onClick={() => onNavigate('clientes')}
+                className="flex items-center gap-space-xs px-space-lg py-space-md bg-surface-container-low text-on-surface rounded-xl font-bold hover:bg-surface-container-high transition-all border border-outline-variant/30"
+              >
+                <span className="material-symbols-outlined text-[20px]">person_add</span>
+                <span>Clientes ({clientes.length})</span>
+              </button>
+            </div>
+          </section>
+
+          {/* KPI Cards */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-lg">
+            <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between gap-space-md">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] uppercase font-bold text-tertiary">Leche Registrada</span>
+                <span className="text-[11px] font-bold text-primary bg-secondary-container px-2 py-0.5 rounded-full">
+                  {registros.length} ordeños
+                </span>
+              </div>
+              <div>
+                <span className="text-[30px] font-extrabold text-on-surface">{litrosTotal}</span>
+                <span className="text-[18px] text-tertiary ml-1 font-bold">Litros</span>
+              </div>
+              <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                <div className="bg-primary h-full rounded-full" style={{ width: `${pctTanque}%` }}></div>
+              </div>
+            </div>
+
+            <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between gap-space-md">
+              <span className="text-[11px] uppercase font-bold text-tertiary">Valor Neto Acopio</span>
+              <span className="text-[26px] font-extrabold text-on-surface">{formatCOP(valorNetoTotal)}</span>
+              <div className="text-[12px] text-tertiary flex justify-between">
+                <span>Precio base:</span>
+                <span className="font-bold text-on-surface">${finca?.precio_sugerido_litro || 2200} / L</span>
+              </div>
+            </div>
+
+            <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between gap-space-md">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] uppercase font-bold text-tertiary">Volumen Vendido</span>
+                <span className="text-[11px] font-bold text-primary bg-secondary-container px-2 py-0.5 rounded-full">
+                  {ventas.length} remisiones
+                </span>
+              </div>
+              <div>
+                <span className="text-[30px] font-extrabold text-on-surface">{litrosVendidos}</span>
+                <span className="text-[18px] text-tertiary ml-1 font-bold">Litros</span>
+              </div>
+              <span className="text-[12px] text-primary font-bold">✓ Sincronizado en ventas_remisiones</span>
+            </div>
+
+            <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between gap-space-md">
+              <span className="text-[11px] uppercase font-bold text-tertiary">Total Facturado Ventas</span>
+              <span className="text-[26px] font-extrabold text-primary">{formatCOP(totalFacturado)}</span>
+              <span className="text-[12px] text-tertiary font-semibold">{clientes.length} clientes activos en base de datos</span>
+            </div>
+          </section>
+
+          {/* Tanque Visual y Bitácora */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
+            <div className="lg:col-span-8 flex flex-col gap-space-xl">
+              <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-lg">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-[20px] font-extrabold text-on-surface">
+                    Tanque Principal ({capacidadTanque} L)
+                  </h2>
+                  <span className="font-bold text-[12px] text-primary bg-secondary-container px-space-md py-0.5 rounded-full">
+                    {finca?.temperatura_tanque || 3.8} °C Óptimo
+                  </span>
+                </div>
+                <div className="flex items-center gap-space-xl p-space-lg bg-surface-container-low rounded-xl">
+                  <div className="w-28 h-40 rounded-xl bg-surface-container-high relative overflow-hidden flex flex-col justify-end p-1 shadow-inner shrink-0">
+                    <div
+                      className="w-full bg-gradient-to-t from-primary to-secondary rounded-lg flex items-center justify-center text-white font-extrabold transition-all duration-500"
+                      style={{ height: `${Math.max(15, pctTanque)}%` }}
+                    >
+                      {pctTanque}%
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[18px] font-extrabold text-on-surface">
+                      Último ordeño: {ultimoOrdeno} Litros
+                    </span>
+                    <span className="text-[14px] text-tertiary">
+                      Capacidad total configurada: {capacidadTanque} Litros
+                    </span>
+                    <span className="text-[13px] text-secondary font-bold">
+                      Espacio libre en tanque: {Math.max(0, capacidadTanque - ultimoOrdeno)} L
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Últimos Movimientos en Base de Datos */}
+              <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+                <h3 className="text-[18px] font-extrabold text-on-surface">
+                  Últimos Registros Guardados en Supabase
+                </h3>
+                <div className="divide-y divide-surface-container-low">
+                  {registros.slice(0, 4).map(reg => (
+                    <div key={reg.id} className="py-space-md flex items-center justify-between">
+                      <div className="flex items-center gap-space-md">
+                        <div className="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-primary">
+                          <span className="material-symbols-outlined text-[20px]">water_drop</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-[14px] text-on-surface block">
+                            Ordeño {reg.turno === 'morning' ? 'Mañana' : 'Tarde'} ({reg.litros} L)
+                          </span>
+                          <span className="text-[12px] text-tertiary">
+                            {reg.fecha} • {reg.operador} • {reg.lote || 'Lote 1'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="font-bold text-primary">
+                        {formatCOP(reg.neto_cop || reg.subtotal_cop || reg.litros * reg.precio_litro)}
+                      </span>
+                    </div>
+                  ))}
+                  {ventas.slice(0, 4).map(v => (
+                    <div key={v.id} className="py-space-md flex items-center justify-between">
+                      <div className="flex items-center gap-space-md">
+                        <div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface">
+                          <span className="material-symbols-outlined text-[20px]">local_shipping</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-[14px] text-on-surface block">
+                            Venta {v.numero_remision} • {v.cliente_nombre}
+                          </span>
+                          <span className="text-[12px] text-tertiary">
+                            {v.fecha} • {v.litros} Litros a ${v.precio_litro}/L
+                          </span>
+                        </div>
+                      </div>
+                      <span className="font-extrabold text-primary">{formatCOP(v.total_cop)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Panel Derecho */}
+            <div className="lg:col-span-4 flex flex-col gap-space-xl">
+              <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+                <h3 className="text-[18px] font-extrabold text-on-surface">Hato Ganadero</h3>
+                <div className="grid grid-cols-2 gap-space-md">
+                  <div className="p-space-md bg-surface-container-low rounded-xl">
+                    <span className="text-[12px] text-tertiary">En Producción</span>
+                    <span className="text-[26px] font-extrabold text-primary block">{finca?.vacas_en_ordeno || 28}</span>
+                    <span className="text-[11px] text-tertiary">Vacas activas</span>
+                  </div>
+                  <div className="p-space-md bg-surface-container-low rounded-xl">
+                    <span className="text-[12px] text-tertiary">Total Hato</span>
+                    <span className="text-[26px] font-extrabold text-on-surface block">{finca?.total_vacas || 45}</span>
+                    <span className="text-[11px] text-tertiary">Cabezas</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onNavigate('mi-finca')}
+                  className="w-full py-2.5 bg-surface-container-low hover:bg-surface-container-high rounded-xl font-bold text-[13px] transition-all"
+                >
+                  Editar Ficha de la Finca
+                </button>
+              </div>
+
+              <div className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[18px] font-extrabold text-on-surface">Compradores</h3>
+                  <button
+                    onClick={() => onNavigate('clientes')}
+                    className="text-[12px] text-primary font-bold hover:underline"
+                  >
+                    + Gestionar
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {clientes.map(c => (
+                    <div key={c.id || c.clave_alias} className="p-3 bg-surface-container-low rounded-xl flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-[13px] block text-on-surface">{c.nombre}</span>
+                        <span className="text-[11px] text-tertiary">{c.contacto_nombre} • {c.telefono}</span>
+                      </div>
+                      <span className="font-extrabold text-[13px] text-primary">${c.precio_acordado_litro}/L</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==============================================================
+    // VISTA 2: LECHE DEL DÍA (TABLA: registros_leche)
+    // ==============================================================
+    function LecheDiaView({ finca, registros, onAddRegistro, onDeleteRegistro }) {
+      const [liters, setLiters] = useState(150);
+      const [price, setPrice] = useState(finca?.precio_sugerido_litro || 2200);
+      const [fleteRate, setFleteRate] = useState(50);
+      const [shift, setShift] = useState('morning');
+      const [operador, setOperador] = useState('Hernán Gómez');
+      const [lote, setLote] = useState('Lote 1');
+      const [saving, setSaving] = useState(false);
+
+      const subtotal = (Number(liters) || 0) * (Number(price) || 0);
+      const flete = (Number(liters) || 0) * (Number(fleteRate) || 0);
+      const neto = subtotal - flete;
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!liters || Number(liters) <= 0) return;
+        setSaving(true);
+        try {
+          await onAddRegistro({
+            finca_id: finca?.id || 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
+            fecha: new Date().toISOString().split('T')[0],
+            hora: new Date().toTimeString().slice(0, 8),
+            turno: shift,
+            litros: Number(liters),
+            precio_litro: Number(price),
+            flete_por_litro: Number(fleteRate) || 50,
+            tanque_temperatura: Number(finca?.temperatura_tanque) || 3.4,
+            operador: operador.trim() || 'Hernán Gómez',
+            lote: lote.trim() || 'Lote 1'
+          });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      return (
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-xl items-start">
+          <form onSubmit={handleSubmit} className="xl:col-span-7 bg-surface-container-lowest p-space-2xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-xl">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h1 className="text-[24px] font-extrabold text-on-surface">Registrar Ordeño en Supabase</h1>
+                <p className="text-[14px] text-on-surface-variant">Se guarda directamente en la tabla <code>registros_leche</code>.</p>
+              </div>
+              <div className="flex bg-surface-container-low p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setShift('morning')}
+                  className={`px-space-md py-1.5 rounded-lg font-bold text-[13px] ${shift === 'morning' ? 'bg-surface-container-lowest text-primary shadow-xs' : 'text-on-surface-variant'}`}
+                >
+                  ☀️ Mañana
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShift('afternoon')}
+                  className={`px-space-md py-1.5 rounded-lg font-bold text-[13px] ${shift === 'afternoon' ? 'bg-surface-container-lowest text-primary shadow-xs' : 'text-on-surface-variant'}`}
+                >
+                  🌅 Tarde
+                </button>
+              </div>
+            </div>
+
+            <div className="p-space-xl bg-surface-container-low rounded-xl flex flex-col gap-2">
+              <label className="font-bold text-[14px]">Volumen Extraído de Leche (Litros)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="any"
+                  min="1"
+                  required
+                  value={liters}
+                  onChange={(e) => setLiters(e.target.value)}
+                  className="w-full h-20 bg-surface-container-lowest text-[36px] font-extrabold pl-space-xl pr-28 rounded-xl shadow-xs"
+                />
+                <span className="absolute right-6 top-6 text-[18px] font-bold text-tertiary">LITROS</span>
+              </div>
+
+              <div className="flex gap-2 pt-2 flex-wrap">
+                <button type="button" onClick={() => setLiters(l => (Number(l) || 0) + 10)} className="px-3 py-1.5 bg-white rounded-lg shadow-xs text-[12px] font-bold">+10 L</button>
+                <button type="button" onClick={() => setLiters(l => (Number(l) || 0) + 25)} className="px-3 py-1.5 bg-white rounded-lg shadow-xs text-[12px] font-bold">+25 L</button>
+                <button type="button" onClick={() => setLiters(l => (Number(l) || 0) + 50)} className="px-3 py-1.5 bg-white rounded-lg shadow-xs text-[12px] font-bold">+50 L</button>
+                <button type="button" onClick={() => setLiters(finca?.capacidad_tanque_litros || 500)} className="px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-lg font-bold text-[12px]">
+                  Tanque Lleno ({finca?.capacidad_tanque_litros || 500}L)
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+              <div>
+                <label className="font-bold text-[13px]">Precio / Litro (COP)</label>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold text-[16px] mt-1"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-[13px]">Operador</label>
+                <input
+                  type="text"
+                  value={operador}
+                  onChange={(e) => setOperador(e.target.value)}
+                  className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-[13px]">Lote / Potrero</label>
+                <input
+                  type="text"
+                  value={lote}
+                  onChange={(e) => setLote(e.target.value)}
+                  className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="p-space-lg bg-surface-container-low rounded-xl flex flex-col gap-1">
+              <div className="flex justify-between text-[14px]">
+                <span>Subtotal Bruto:</span>
+                <span className="font-bold">{formatCOP(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-[14px] text-error">
+                <span>Deducción Flete (${fleteRate}/L):</span>
+                <span>-{formatCOP(flete)}</span>
+              </div>
+              <div className="border-t border-surface-container-high pt-2 flex justify-between font-extrabold text-[20px] text-primary">
+                <span>Neto a Liquidar:</span>
+                <span>{formatCOP(neto)}</span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full py-space-lg bg-primary hover:bg-primary-container text-white font-extrabold rounded-xl shadow-md transition-all text-[16px] disabled:opacity-50"
+            >
+              {saving ? 'Guardando en Supabase...' : '✓ Guardar Ordeño en Supabase'}
+            </button>
+          </form>
+
+          {/* Historial en vivo desde Supabase */}
+          <div className="xl:col-span-5 bg-surface-container-lowest p-space-2xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[18px] font-extrabold text-on-surface">
+                Ordeños en Supabase ({registros.length})
+              </h3>
+              <span className="text-[11px] font-mono bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-md font-bold">
+                public.registros_leche
+              </span>
+            </div>
+            <div className="divide-y divide-surface-container-low max-h-[540px] overflow-y-auto">
+              {registros.map(r => (
+                <div key={r.id} className="py-space-md flex justify-between items-center gap-2">
+                  <div>
+                    <span className="font-bold text-[14px] text-on-surface block">
+                      {r.turno === 'morning' ? '☀️ Mañana' : '🌅 Tarde'} • {r.litros} Litros
+                    </span>
+                    <span className="text-[12px] text-tertiary">
+                      {r.fecha} ({String(r.hora || '').slice(0, 5)}) • {r.operador} • {r.lote || 'Lote 1'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-primary text-[14px]">
+                      {formatCOP(r.neto_cop || r.subtotal_cop || r.litros * r.precio_litro)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteRegistro(r.id)}
+                      title="Eliminar registro de Supabase"
+                      className="p-1.5 text-tertiary hover:text-error hover:bg-error-container/40 rounded-lg transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==============================================================
+    // VISTA 3: MI FINCA (TABLA: fincas)
+    // ==============================================================
+    function MiFincaView({ finca, onSaveFinca }) {
+      const [form, setForm] = useState({ ...finca });
+      const [saving, setSaving] = useState(false);
+
+      useEffect(() => {
+        if (finca) setForm({ ...finca });
+      }, [finca]);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+          await onSaveFinca(form);
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      return (
+        <form onSubmit={handleSubmit} className="bg-surface-container-lowest p-space-2xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-xl max-w-4xl">
+          <div className="flex items-center justify-between border-b border-surface-container-low pb-4">
+            <div>
+              <h1 className="text-[26px] font-extrabold text-on-surface">Ficha Técnica de la Finca</h1>
+              <p className="text-[14px] text-on-surface-variant">Conectado en vivo con la tabla <code>public.fincas</code> de Supabase.</p>
+            </div>
+            <span className="text-[12px] font-mono bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-bold">
+              ID: {form.id_predial || 'COL-ANT-88210'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+            <div>
+              <label className="font-bold text-[13px]">Nombre Completo del Ganadero</label>
+              <input
+                type="text"
+                value={form.propietario_nombre || ''}
+                onChange={e => setForm({ ...form, propietario_nombre: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-semibold mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Cédula / NIT</label>
+              <input
+                type="text"
+                value={form.propietario_cedula || ''}
+                onChange={e => setForm({ ...form, propietario_cedula: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Teléfono / WhatsApp</label>
+              <input
+                type="text"
+                value={form.telefono || ''}
+                onChange={e => setForm({ ...form, telefono: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Correo Electrónico</label>
+              <input
+                type="email"
+                value={form.email || ''}
+                onChange={e => setForm({ ...form, email: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Nombre del Predio / Finca</label>
+              <input
+                type="text"
+                value={form.nombre_finca || ''}
+                onChange={e => setForm({ ...form, nombre_finca: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-semibold mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Municipio</label>
+              <input
+                type="text"
+                value={form.municipio || ''}
+                onChange={e => setForm({ ...form, municipio: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Sector / Vereda</label>
+              <input
+                type="text"
+                value={form.sector || ''}
+                onChange={e => setForm({ ...form, sector: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Registro Sanitario ICA</label>
+              <input
+                type="text"
+                value={form.codigo_ica || ''}
+                onChange={e => setForm({ ...form, codigo_ica: e.target.value })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-medium mt-1"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-space-md pt-2 border-t border-surface-container-low">
+            <div>
+              <label className="font-bold text-[13px]">Capacidad Tanque (L)</label>
+              <input
+                type="number"
+                value={form.capacidad_tanque_litros || 0}
+                onChange={e => setForm({ ...form, capacidad_tanque_litros: Number(e.target.value) || 0 })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold mt-1 text-primary"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Total Vacas</label>
+              <input
+                type="number"
+                value={form.total_vacas || 0}
+                onChange={e => setForm({ ...form, total_vacas: parseInt(e.target.value) || 0 })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold mt-1"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Vacas en Ordeño</label>
+              <input
+                type="number"
+                value={form.vacas_en_ordeno || 0}
+                onChange={e => setForm({ ...form, vacas_en_ordeno: parseInt(e.target.value) || 0 })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold mt-1 text-primary"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-[13px]">Precio Base / L (COP)</label>
+              <input
+                type="number"
+                value={form.precio_sugerido_litro || 2200}
+                onChange={e => setForm({ ...form, precio_sugerido_litro: Number(e.target.value) || 0 })}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold mt-1"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="py-space-md bg-primary hover:bg-primary-container text-white font-extrabold rounded-xl shadow-md transition-all self-start px-space-2xl disabled:opacity-50"
+          >
+            {saving ? 'Guardando en Supabase...' : '✓ Guardar Ficha Técnica en Supabase'}
+          </button>
+        </form>
+      );
+    }
+
+    // ==============================================================
+    // VISTA 4: VENTAS Y REMISIONES (TABLA: ventas_remisiones)
+    // ==============================================================
+    function VentasView({ clientes, ventas, onAddVenta, onToggleEstadoVenta, onDeleteVenta, onOpenNewCliente }) {
+      const [selectedClienteId, setSelectedClienteId] = useState('');
+      const [liters, setLiters] = useState(120);
+      const [price, setPrice] = useState(2180);
+      const [metodoPago, setMetodoPago] = useState('Transferencia Bancolombia');
+      const [conductor, setConductor] = useState('Rodrigo Velásquez');
+      const [placa, setPlaca] = useState('TRK-982');
+      const [saving, setSaving] = useState(false);
+
+      useEffect(() => {
+        if (clientes.length > 0 && !selectedClienteId) {
+          const first = clientes[0];
+          setSelectedClienteId(first.id || first.clave_alias);
+          setPrice(first.precio_acordado_litro || 2200);
+          setConductor(first.contacto_nombre || 'Conductor de Ruta');
+        }
+      }, [clientes]);
+
+      const buyer = clientes.find(c => (c.id || c.clave_alias) === selectedClienteId) || clientes[0] || {
+        nombre: 'Cliente General',
+        contacto_nombre: 'Contacto',
+        telefono: '+57 300 000 0000',
+        telefono_wa: '573000000000',
+        precio_acordado_litro: 2200
+      };
+
+      const total = (Number(liters) || 0) * (Number(price) || 0);
+      const waUrl = `https://wa.me/${buyer.telefono_wa || '573104558291'}?text=${encodeURIComponent(
+        `Hola ${buyer.contacto_nombre || buyer.nombre}, ya tenemos listo el despacho de ${liters} L por valor de ${formatCOP(total)}.`
+      )}`;
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!liters || Number(liters) <= 0) return;
+        setSaving(true);
+        try {
+          const numRem = `REM-${Math.floor(1000 + Math.random() * 9000)}`;
+          await onAddVenta({
+            numero_remision: numRem,
+            cliente_id: buyer.id || null,
+            cliente_nombre: buyer.nombre,
+            fecha: new Date().toISOString().split('T')[0],
+            hora: new Date().toTimeString().slice(0, 8),
+            litros: Number(liters),
+            precio_litro: Number(price),
+            total_cop: total,
+            metodo_pago: metodoPago,
+            estado: 'paid',
+            conductor_nombre: conductor.trim() || buyer.contacto_nombre || 'Conductor',
+            placa_vehiculo: placa.trim() || 'TRK-982'
+          });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      return (
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-xl items-start">
+          <form onSubmit={handleSubmit} className="xl:col-span-5 bg-surface-container-lowest p-space-2xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[20px] font-extrabold text-on-surface">Nueva Remisión de Venta</h2>
+              <button
+                type="button"
+                onClick={onOpenNewCliente}
+                className="text-[12px] bg-secondary-container text-on-secondary-container px-3 py-1 rounded-lg font-bold hover:bg-secondary-fixed-dim transition-colors flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[15px]">person_add</span>
+                <span>+ Nuevo Cliente</span>
+              </button>
+            </div>
+
+            <div>
+              <label className="font-bold text-[13px]">Comprador / Planta Lechera</label>
+              <select
+                value={selectedClienteId}
+                onChange={e => {
+                  const idVal = e.target.value;
+                  setSelectedClienteId(idVal);
+                  const b = clientes.find(c => (c.id || c.clave_alias) === idVal);
+                  if (b) {
+                    setPrice(b.precio_acordado_litro || 2200);
+                    if (b.contacto_nombre) setConductor(b.contacto_nombre);
+                  }
+                }}
+                className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold mt-1"
+              >
+                {clientes.map(c => (
+                  <option key={c.id || c.clave_alias} value={c.id || c.clave_alias}>
+                    {c.nombre} (${c.precio_acordado_litro}/L)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+              <div>
+                <span className="font-bold text-[13px] block">{buyer.contacto_nombre || buyer.nombre}</span>
+                <span className="text-[12px] text-tertiary">{buyer.telefono} • {buyer.ruta || 'Ruta Principal'}</span>
+              </div>
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-secondary-container text-on-secondary-container rounded-lg font-bold text-[12px] flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[15px]">chat</span>
+                <span>WhatsApp</span>
+              </a>
+            </div>
+
+            <div className="grid grid-cols-2 gap-space-md">
+              <div>
+                <label className="font-bold text-[13px]">Litros a Despachar</label>
+                <input
+                  type="number"
+                  step="any"
+                  min="1"
+                  required
+                  value={liters}
+                  onChange={e => setLiters(e.target.value)}
+                  className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold mt-1 text-[18px]"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-[13px]">Precio / Litro (COP)</label>
+                <input
+                  type="number"
+                  step="any"
+                  min="1"
+                  required
+                  value={price}
+                  onChange={e => setPrice(e.target.value)}
+                  className="w-full h-12 bg-surface-container-low px-space-md rounded-xl font-bold mt-1 text-[18px]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-space-md">
+              <div>
+                <label className="font-bold text-[13px]">Conductor</label>
+                <input
+                  type="text"
+                  value={conductor}
+                  onChange={e => setConductor(e.target.value)}
+                  className="w-full h-11 bg-surface-container-low px-space-md rounded-xl font-medium mt-1 text-[13px]"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-[13px]">Placa Vehículo</label>
+                <input
+                  type="text"
+                  value={placa}
+                  onChange={e => setPlaca(e.target.value)}
+                  className="w-full h-11 bg-surface-container-low px-space-md rounded-xl font-mono font-bold mt-1 text-[13px]"
+                />
+              </div>
+            </div>
+
+            <div className="p-space-md bg-surface-container-low rounded-xl flex justify-between items-center font-extrabold text-[20px] text-primary">
+              <span>Total a Facturar:</span>
+              <span>{formatCOP(total)}</span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="py-space-md bg-primary hover:bg-primary-container text-white font-extrabold rounded-xl shadow-md transition-all disabled:opacity-50"
+            >
+              {saving ? 'Guardando en Supabase...' : '✓ Emitir y Guardar Remisión en Supabase'}
+            </button>
+          </form>
+
+          {/* Lista de remisiones en Supabase */}
+          <div className="xl:col-span-7 bg-surface-container-lowest p-space-2xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col gap-space-md">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[18px] font-extrabold text-on-surface">
+                Despachos en Supabase ({ventas.length})
+              </h3>
+              <span className="text-[11px] font-mono bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-md font-bold">
+                public.ventas_remisiones
+              </span>
+            </div>
+            <div className="divide-y divide-surface-container-low max-h-[540px] overflow-y-auto">
+              {ventas.map(v => (
+                <div key={v.id} className="py-space-md flex justify-between items-center gap-3">
+                  <div>
+                    <span className="font-bold text-[14px] text-on-surface block">
+                      {v.numero_remision} • {v.cliente_nombre}
+                    </span>
+                    <span className="text-[12px] text-tertiary">
+                      {v.fecha} • {v.litros} Litros a ${v.precio_litro}/L • {v.conductor_nombre || 'Ruta'} ({v.placa_vehiculo || 'TRK'})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="font-extrabold text-primary block text-[15px]">{formatCOP(v.total_cop)}</span>
+                      <button
+                        type="button"
+                        onClick={() => onToggleEstadoVenta(v.id, v.estado === 'paid' ? 'pending' : 'paid')}
+                        className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold cursor-pointer transition-all ${
+                          v.estado === 'paid'
+                            ? 'bg-secondary-container text-on-secondary-container'
+                            : 'bg-error-container text-on-error-container'
+                        }`}
+                        title="Clic para cambiar entre Pagado y Pendiente en Supabase"
+                      >
+                        {v.estado === 'paid' ? '✓ Pagado' : '⏳ Pendiente'}
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteVenta(v.id)}
+                      title="Eliminar remisión de Supabase"
+                      className="p-1.5 text-tertiary hover:text-error hover:bg-error-container/40 rounded-lg transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==============================================================
+    // VISTA 5: DIRECTORIO DE CLIENTES (TABLA: clientes)
+    // ==============================================================
+    function ClientesView({ clientes, onOpenNewCliente, onEditCliente, onDeleteCliente }) {
+      return (
+        <div className="flex flex-col gap-space-xl">
+          <div className="bg-surface-container-lowest p-space-2xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-primary">
+                <span className="material-symbols-outlined">groups</span>
+                <span className="text-[11px] uppercase font-bold tracking-wider">Directorio Comercial en Supabase</span>
+              </div>
+              <h1 className="text-[26px] font-extrabold text-on-surface">Clientes y Plantas Receptoras</h1>
+              <p className="text-[14px] text-on-surface-variant">
+                Agrega, edita precios pactados o elimina compradores directamente en la tabla <code>public.clientes</code>.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenNewCliente}
+              className="px-space-xl py-space-md bg-primary hover:bg-primary-container text-white font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2 self-start sm:self-auto"
+            >
+              <span className="material-symbols-outlined text-[20px]">person_add</span>
+              <span>Agregar Nuevo Cliente</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
+            {clientes.map(c => (
+              <div key={c.id || c.clave_alias} className="bg-surface-container-lowest p-space-xl rounded-2xl shadow-sm border border-outline-variant/20 flex flex-col justify-between gap-space-md">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase text-primary bg-secondary-container px-2.5 py-0.5 rounded-full">
+                      {c.ruta || 'Ruta Principal'}
+                    </span>
+                    <h3 className="text-[18px] font-extrabold text-on-surface mt-2">{c.nombre}</h3>
+                    <p className="text-[13px] text-tertiary">{c.empresa || c.nombre}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onEditCliente(c)}
+                      className="p-1.5 text-tertiary hover:text-primary hover:bg-surface-container-low rounded-lg"
+                      title="Editar cliente"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteCliente(c.id)}
+                      className="p-1.5 text-tertiary hover:text-error hover:bg-error-container/40 rounded-lg"
+                      title="Eliminar cliente"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-1 text-[13px]">
+                  <div className="flex justify-between">
+                    <span className="text-tertiary">Contacto:</span>
+                    <span className="font-bold text-on-surface">{c.contacto_nombre || '—'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-tertiary">Teléfono:</span>
+                    <span className="font-semibold text-on-surface">{c.telefono}</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-surface-container-high">
+                    <span className="text-tertiary">Precio Pactado:</span>
+                    <span className="font-extrabold text-primary text-[15px]">${c.precio_acordado_litro} COP / L</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ==============================================================
+    // APP PRINCIPAL CONECTADA EN VIVO A SUPABASE
+    // ==============================================================
+    function MainApp() {
+      const [currentTab, setCurrentTab] = useState('inicio');
+      const [finca, setFinca] = useState({
+        id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
+        nombre_finca: 'Hacienda La Pradera',
+        propietario_nombre: 'TOMAS GARCIA',
+        propietario_cedula: 'CC 71.492.308-4',
+        telefono: '+57 312 489 9012',
+        email: 'carlos.mendoza@lapradera.co',
+        municipio: 'San Pedro de los Milagros',
+        departamento: 'Antioquia',
+        sector: 'Sector El Salitre',
+        codigo_ica: 'ICA Res. 04892',
+        id_predial: 'COL-ANT-88210',
+        capacidad_tanque_litros: 500,
+        temperatura_tanque: 3.8,
+        total_vacas: 45,
+        vacas_en_ordeno: 28,
+        precio_sugerido_litro: 2200
+      });
+      const [registros, setRegistros] = useState([]);
+      const [clientes, setClientes] = useState([]);
+      const [ventas, setVentas] = useState([]);
+      const [toast, setToast] = useState({ visible: false, title: '', message: '', type: 'success' });
+      const [isSyncing, setIsSyncing] = useState(false);
+      const [connStatus, setConnStatus] = useState({ ok: false, message: 'Conectando con Supabase PostgreSQL...' });
+      const [lastSync, setLastSync] = useState('');
+
+      // Modal de cliente
+      const [clienteModalOpen, setClienteModalOpen] = useState(false);
+      const [editingCliente, setEditingCliente] = useState(null);
+
+      const showToast = useCallback((title, message, type = 'success') => {
+        setToast({ visible: true, title, message, type });
+        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 4000);
+      }, []);
+
+      const loadFromSupabase = useCallback(async () => {
+        setIsSyncing(true);
+        try {
+          const [fincasData, clientesData, registrosData, ventasData] = await Promise.all([
+            sbRest('fincas?select=*&limit=1'),
+            sbRest('clientes?select=*&order=created_at.asc'),
+            sbRest('registros_leche?select=*&order=created_at.desc'),
+            sbRest('ventas_remisiones?select=*&order=created_at.desc')
+          ]);
+
+          if (Array.isArray(fincasData) && fincasData[0]) setFinca(fincasData[0]);
+          if (Array.isArray(clientesData)) setClientes(clientesData);
+          if (Array.isArray(registrosData)) setRegistros(registrosData);
+          if (Array.isArray(ventasData)) setVentas(ventasData);
+
+          const nowStr = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setLastSync(nowStr);
+          setConnStatus({
+            ok: true,
+            message: `Conectado en vivo a Supabase (cthvxtjwstyezwzuohdx) • ${clientesData.length} clientes, ${registrosData.length} ordeños, ${ventasData.length} ventas`
+          });
+        } catch (err) {
+          console.error('Error sincronizando con Supabase:', err);
+          setConnStatus({
+            ok: false,
+            message: `Error de conexión con Supabase: ${err.message}`
+          });
+          showToast('Error Supabase', err.message, 'error');
+        } finally {
+          setIsSyncing(false);
+        }
+      }, [showToast]);
+
+      useEffect(() => {
+        loadFromSupabase();
+      }, [loadFromSupabase]);
+
+      // Guardar ordeño en Supabase
+      const handleAddRegistro = async (reg) => {
+        try {
+          const inserted = await sbRest('registros_leche', {
+            method: 'POST',
+            body: reg
+          });
+          const row = Array.isArray(inserted) ? inserted[0] : inserted;
+          setRegistros(prev => [row, ...prev]);
+          showToast('Ordeño Guardado en Supabase', `Se registraron ${reg.litros} L en public.registros_leche.`);
+        } catch (err) {
+          showToast('Error al guardar ordeño', err.message, 'error');
+        }
+      };
+
+      const handleDeleteRegistro = async (id) => {
+        try {
+          await sbRest(`registros_leche?id=eq.${id}`, { method: 'DELETE' });
+          setRegistros(prev => prev.filter(r => r.id !== id));
+          showToast('Ordeño Eliminado', 'El registro fue eliminado de Supabase.');
+        } catch (err) {
+          showToast('Error al eliminar', err.message, 'error');
+        }
+      };
+
+      // Guardar ficha de finca en Supabase
+      const handleSaveFinca = async (data) => {
+        try {
+          const payload = {
+            nombre_finca: data.nombre_finca,
+            propietario_nombre: data.propietario_nombre,
+            propietario_cedula: data.propietario_cedula,
+            telefono: data.telefono,
+            email: data.email,
+            municipio: data.municipio,
+            sector: data.sector,
+            codigo_ica: data.codigo_ica,
+            capacidad_tanque_litros: Number(data.capacidad_tanque_litros) || 500,
+            total_vacas: parseInt(data.total_vacas) || 45,
+            vacas_en_ordeno: parseInt(data.vacas_en_ordeno) || 28,
+            precio_sugerido_litro: Number(data.precio_sugerido_litro) || 2200,
+            updated_at: new Date().toISOString()
+          };
+          const updated = await sbRest(`fincas?id=eq.${data.id || 'a1b2c3d4-e5f6-7890-1234-567890abcdef'}`, {
+            method: 'PATCH',
+            body: payload
+          });
+          if (Array.isArray(updated) && updated[0]) {
+            setFinca(updated[0]);
+          } else {
+            setFinca(prev => ({ ...prev, ...payload }));
+          }
+          showToast('Finca Actualizada en Supabase', 'Los datos quedaron guardados en public.fincas.');
+        } catch (err) {
+          showToast('Error guardando finca', err.message, 'error');
+        }
+      };
+
+      // Emitir remisión en Supabase
+      const handleAddVenta = async (vnt) => {
+        try {
+          const inserted = await sbRest('ventas_remisiones', {
+            method: 'POST',
+            body: vnt
+          });
+          const row = Array.isArray(inserted) ? inserted[0] : inserted;
+          setVentas(prev => [row, ...prev]);
+          showToast('Remisión Guardada en Supabase', `Remisión ${vnt.numero_remision} creada en public.ventas_remisiones.`);
+        } catch (err) {
+          showToast('Error creando remisión', err.message, 'error');
+        }
+      };
+
+      const handleToggleEstadoVenta = async (id, nuevoEstado) => {
+        try {
+          const updated = await sbRest(`ventas_remisiones?id=eq.${id}`, {
+            method: 'PATCH',
+            body: { estado: nuevoEstado, updated_at: new Date().toISOString() }
+          });
+          const row = Array.isArray(updated) ? updated[0] : null;
+          setVentas(prev => prev.map(v => v.id === id ? (row || { ...v, estado: nuevoEstado }) : v));
+          showToast('Estado Actualizado', `Remisión marcada como ${nuevoEstado === 'paid' ? 'Pagada' : 'Pendiente'} en Supabase.`);
+        } catch (err) {
+          showToast('Error actualizando estado', err.message, 'error');
+        }
+      };
+
+      const handleDeleteVenta = async (id) => {
+        try {
+          await sbRest(`ventas_remisiones?id=eq.${id}`, { method: 'DELETE' });
+          setVentas(prev => prev.filter(v => v.id !== id));
+          showToast('Remisión Eliminada', 'Se eliminó de public.ventas_remisiones.');
+        } catch (err) {
+          showToast('Error eliminando remisión', err.message, 'error');
+        }
+      };
+
+      // Clientes CRUD
+      const handleClienteSaved = (savedRow, isEdit) => {
+        if (isEdit) {
+          setClientes(prev => prev.map(c => c.id === savedRow.id ? savedRow : c));
+          showToast('Cliente Actualizado', `${savedRow.nombre} actualizado en Supabase.`);
+        } else {
+          setClientes(prev => [...prev, savedRow]);
+          showToast('Cliente Creado en Supabase', `${savedRow.nombre} agregado a public.clientes.`);
+        }
+      };
+
+      const handleDeleteCliente = async (id) => {
+        if (!id) return;
+        try {
+          await sbRest(`clientes?id=eq.${id}`, { method: 'DELETE' });
+          setClientes(prev => prev.filter(c => c.id !== id));
+          showToast('Cliente Eliminado', 'Se eliminó de public.clientes en Supabase.');
+        } catch (err) {
+          showToast('Error eliminando cliente', err.message, 'error');
+        }
+      };
+
+      return (
+        <div className="bg-background min-h-screen text-on-surface antialiased">
+          <Sidebar
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+            finca={finca}
+            connOk={connStatus.ok}
+            stats={{
+              registros: registros.length,
+              ventas: ventas.length,
+              clientes: clientes.length
+            }}
+          />
+          <div className="pl-72 min-h-screen flex flex-col">
+            <Header
+              onSync={loadFromSupabase}
+              isSyncing={isSyncing}
+              lastSync={lastSync}
+            />
+            <main className="pt-24 px-space-2xl py-space-xl flex-1 max-w-[1600px] mx-auto w-full flex flex-col gap-space-lg">
+              {/* Barra de Estado de Conexión en Vivo con Supabase */}
+              <div className={`px-space-lg py-space-sm rounded-xl flex items-center justify-between border ${
+                connStatus.ok
+                  ? 'bg-secondary-container/40 border-primary/30 text-on-surface'
+                  : 'bg-error-container/50 border-error/40 text-on-error-container'
+              }`}>
+                <div className="flex items-center gap-space-sm">
+                  <span className={`material-symbols-outlined text-[20px] ${connStatus.ok ? 'text-primary' : 'text-error'}`}>
+                    {connStatus.ok ? 'cloud_done' : 'cloud_off'}
+                  </span>
+                  <span className="font-bold text-[13px]">{connStatus.message}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setEditingCliente(null); setClienteModalOpen(true); }}
+                  className="px-3 py-1 bg-primary text-white rounded-lg font-bold text-[12px] shadow-xs hover:bg-primary-container transition-all"
+                >
+                  + Agregar Cliente
+                </button>
+              </div>
+
+              {currentTab === 'inicio' && (
+                <DashboardView
+                  finca={finca}
+                  registros={registros}
+                  ventas={ventas}
+                  clientes={clientes}
+                  onNavigate={setCurrentTab}
+                />
+              )}
+              {currentTab === 'leche-del-dia' && (
+                <LecheDiaView
+                  finca={finca}
+                  registros={registros}
+                  onAddRegistro={handleAddRegistro}
+                  onDeleteRegistro={handleDeleteRegistro}
+                />
+              )}
+              {currentTab === 'mi-finca' && (
+                <MiFincaView
+                  finca={finca}
+                  onSaveFinca={handleSaveFinca}
+                />
+              )}
+              {currentTab === 'ventas' && (
+                <VentasView
+                  clientes={clientes}
+                  ventas={ventas}
+                  onAddVenta={handleAddVenta}
+                  onToggleEstadoVenta={handleToggleEstadoVenta}
+                  onDeleteVenta={handleDeleteVenta}
+                  onOpenNewCliente={() => { setEditingCliente(null); setClienteModalOpen(true); }}
+                />
+              )}
+              {currentTab === 'clientes' && (
+                <ClientesView
+                  clientes={clientes}
+                  onOpenNewCliente={() => { setEditingCliente(null); setClienteModalOpen(true); }}
+                  onEditCliente={(c) => { setEditingCliente(c); setClienteModalOpen(true); }}
+                  onDeleteCliente={handleDeleteCliente}
+                />
+              )}
+            </main>
+          </div>
+
+          <ClienteModal
+            isOpen={clienteModalOpen}
+            onClose={() => setClienteModalOpen(false)}
+            initialData={editingCliente}
+            onSaved={handleClienteSaved}
+          />
+
+          <ToastNotification
+            toast={toast}
+            onClose={() => setToast(prev => ({ ...prev, visible: false }))}
+          />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<MainApp />);
+  </script>
+</body>
+</html>
